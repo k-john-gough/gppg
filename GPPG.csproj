@@ -1,0 +1,112 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AF1F8BCF-34FC-4A5E-9D45-BCC6031720BC}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>Gppg</AssemblyName>
+    <RootNamespace>QUT.Gppg</RootNamespace>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>.\bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>.\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GPPGcopyright.rtf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ParserGenerator\CharUtils.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\CodeGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\ErrorHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\GplexBuffers.cs" />
+    <Compile Include="ParserGenerator\Grammar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\LALRGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\ListUtilities.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\LR0Generator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Main.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\ParseHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Parser.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\ParserAction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Precedence.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Production.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\ProductionItem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\scanaction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\scanhelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Scanner.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\SemanticAction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Set.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\State.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Symbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ParserGenerator\Transition.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShiftReduceParser\ShiftReduceParserCode.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>
