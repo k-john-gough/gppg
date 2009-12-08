@@ -10,7 +10,7 @@
 %scanbasetype ActionBase
 %tokentype ActionToken
 
-%option noparser, nofiles, verbose, summary, noembedbuffers, out:ScanAction.cs
+%option noparser, nofiles, verbose, noembedbuffers, out:ScanAction.cs
 
 %{
    int length;

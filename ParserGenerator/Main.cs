@@ -50,12 +50,20 @@ namespace QUT.GPGen
                 {
                     inputFile = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
                 }
-                catch (IOException)
+                catch (IOException x)
                 {
+                    string message;
                     inputFile = null;
-                    string message = String.Format(CultureInfo.InvariantCulture, "Source file <{0}> not found{1}", filename, Environment.NewLine);
+                    if (x is FileNotFoundException)
+                        message = String.Format(CultureInfo.InvariantCulture, 
+                            "Source file <{0}> not found{1}", 
+                            filename, Environment.NewLine);
+                    else
+                        message = String.Format(CultureInfo.InvariantCulture, 
+                            "Source file <{0}> could not be opened{1}", 
+                            filename, Environment.NewLine);
                     handler.AddError(message, null); // aast.AtStart;
-                    throw;
+                    return;
                 }
 
                 scanner = new Lexers.Scanner(inputFile);
@@ -121,14 +129,16 @@ namespace QUT.GPGen
             }
             catch (System.Exception e)
             {
+                if (e is TooManyErrorsException)
+                    return;
                 Console.Error.WriteLine("Unexpected Error {0}", e.Message); 
                 throw; // Now rethrow the caught exception.
             }
             finally
             {
-                if ((handler.Errors || handler.Warnings) && scanner != null)
-                    handler.DumpAll(scanner.Buffer, Console.Error);
-                if (Listing || handler.Errors || handler.Warnings)
+                if (handler.Errors || handler.Warnings)
+                    handler.DumpAll((scanner == null ? null : scanner.Buffer), Console.Error);
+                if ((Listing || handler.Errors || handler.Warnings) && parser != null)
                 {
                     string listName = parser.ListfileName;
                     StreamWriter listStream = ListingFile(listName);
