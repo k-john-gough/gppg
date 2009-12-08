@@ -29,8 +29,6 @@ namespace QUT.GPGen.Parser
             span = spn;
         }
 
-        //internal int Length { get { return span.endColumn - span.startColumn; } }
-
         public int CompareTo(Error r)
         {
             if (span.startLine < r.span.startLine) return -1;
@@ -39,16 +37,13 @@ namespace QUT.GPGen.Parser
             else if (span.startColumn > r.span.startColumn) return 1;
             else return 0;
         }
-
-        //public bool Equals(Error r)
-        //{
-        //    return (span.Equals(r.span));
-        //}
     }
     
     
     internal class ErrorHandler
     {
+        const int maxErrors = 50; // Will this be enough for all users?
+
         List<Error> errors;
         int errNum;
         int wrnNum;
@@ -59,15 +54,19 @@ namespace QUT.GPGen.Parser
         internal bool Errors { get { return errNum > 0; } }
         internal bool Warnings { get { return wrnNum > 0; } }
 
-
-        //internal int ErrNum { get { return errNum; } }
-        //internal int WrnNum { get { return wrnNum; } }
-
         internal ErrorHandler()
         {
             errors = new List<Error>(8);
         }
 
+        private void AddError(Error e) {
+            errors.Add(e);
+            if (errors.Count > maxErrors) {
+                errors.Add(new Error("Too many errors, abandoning", e.span, false));
+                throw new TooManyErrorsException("Too many errors");
+            }
+        }
+ 
         // -----------------------------------------------------
         //   Public utility methods
         // -----------------------------------------------------
@@ -82,14 +81,14 @@ namespace QUT.GPGen.Parser
         {
             if (spn == null)
                 spn = defaultSpan;
-            errors.Add(new Error(msg, spn, false)); errNum++;
+            this.AddError(new Error(msg, spn, false)); errNum++;
         }
 
         internal void AddWarning(string msg, LexSpan spn)
         {
             if (spn == null)
                 spn = defaultSpan;
-            errors.Add(new Error(msg, spn, true)); wrnNum++;
+            this.AddError(new Error(msg, spn, true)); wrnNum++;
         }
 
         /// <summary>
@@ -100,8 +99,6 @@ namespace QUT.GPGen.Parser
         /// <param name="key">The featured string</param>
         internal void ListError(LexSpan spn, int num, string key, char quote)
         { ListError(spn, num, key, quote, quote); }
-        //internal void ListError(LexSpan spn, int num, string key)
-        //{ ListError(spn, num, key, '<', '>'); }
 
         void ListError(LexSpan spn, int num, string key, char lh, char rh)
         {
@@ -118,7 +115,7 @@ namespace QUT.GPGen.Parser
                     break;
             }
             message = String.Format(CultureInfo.InvariantCulture, "{0} {1}{2}{3} {4}", prefix, lh, key, rh, suffix);
-            errors.Add(new Error(message, spn, num >= Error.minWrn));
+            this.AddError(new Error(message, spn, num >= Error.minWrn));
             if (num < Error.minWrn) errNum++; else wrnNum++;
         }
 
@@ -156,7 +153,7 @@ namespace QUT.GPGen.Parser
 
                 default: message = "Error " + Convert.ToString(num, CultureInfo.InvariantCulture); break;
             }
-            errors.Add(new Error(message, spn, num >= Error.minWrn));
+            this.AddError(new Error(message, spn, num >= Error.minWrn));
             if (num < Error.minWrn) errNum++; else wrnNum++;
         }
  
@@ -325,6 +322,9 @@ namespace QUT.GPGen.Parser
         // -----------------------------------------------------
 
         internal void DumpAll(ScanBuff buff, TextWriter wrtr) {
+            if (buff == null) {
+                PanicDump(wrtr); return;
+            }
             int  line = 1;
             int  eNum = 0;
             int  eLin = 0;
@@ -416,9 +416,18 @@ namespace QUT.GPGen.Parser
             for (int i = groupFirst; i < errors.Count; i++) {
                 Error err = errors[i];
                 wrtr.Write((err.isWarn ? "Warning: " : "Error: "));
-                wrtr.Write(errors[i].message);    
+                wrtr.Write(err.message);    
                 wrtr.WriteLine();    
             }
-        } 
+        }
+
+        private void PanicDump(TextWriter wrtr) {
+            foreach (Error err in errors) {
+                wrtr.Write((err.isWarn ? "Warning: " : "Error: "));
+                wrtr.Write(err.message);
+                wrtr.WriteLine();
+            }
+
+        }
     }
 }

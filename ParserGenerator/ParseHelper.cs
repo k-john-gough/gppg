@@ -279,13 +279,22 @@ namespace QUT.GPGen.Parser
     // ===================================================================
 
     [Serializable]
-    public class GppgInternalException : Exception
-    {
+    public class GppgInternalException : Exception {
         public GppgInternalException() { }
         public GppgInternalException(string message) : base(message) { }
         public GppgInternalException(string message, Exception innerException)
             : base(message, innerException) { }
         protected GppgInternalException(SerializationInfo info, StreamingContext context)
+            : base(info, context) { }
+    }
+
+    [Serializable]
+    public class TooManyErrorsException : Exception {
+        public TooManyErrorsException() { }
+        public TooManyErrorsException(string message) : base(message) { }
+        public TooManyErrorsException(string message, Exception innerException)
+            : base(message, innerException) { }
+        protected TooManyErrorsException(SerializationInfo info, StreamingContext context)
             : base(info, context) { }
     }
 
