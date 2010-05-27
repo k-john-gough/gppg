@@ -1,5 +1,5 @@
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, QUT 2005-2007
+// Copyright (c) Wayne Kelly, QUT 2005-2010
 // (see accompanying GPPGcopyright.rtf)
 
 
@@ -262,7 +262,7 @@ namespace QUT.GPGen
             versionInfo = ((AssemblyFileVersionAttribute)info).Version;
 
             Console.WriteLine("Gardens Point Parser Generator (gppg) " + versionInfo);
-            Console.WriteLine("Copyright (c) 2005-2009 Wayne Kelly, QUT");
+            Console.WriteLine("Copyright (c) 2005-2010 Wayne Kelly, QUT");
             Console.WriteLine("w.kelly@qut.ed.au");
             Console.WriteLine("Queensland University of Technology");
             Console.WriteLine();

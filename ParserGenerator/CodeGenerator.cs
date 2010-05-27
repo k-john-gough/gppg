@@ -1,5 +1,5 @@
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, QUT 2005-2007
+// Copyright (c) Wayne Kelly, QUT 2005-2010
 // (see accompanying GPPGcopyright.rtf)
 
 using System;
@@ -287,6 +287,9 @@ namespace QUT.GPGen
               GenerateStateElement(state_nr++, state);
             Console.WriteLine();
 
+            Console.WriteLine("    for (int sNo = 0; sNo < states.Length; sNo++) states[sNo].number = sNo;");
+
+            Console.WriteLine();
             foreach (Production production in productions)
               GenerateRule(production);
 
