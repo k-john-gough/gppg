@@ -1,5 +1,5 @@
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, K John Gough, QUT 2006-2008
+// Copyright (c) Wayne Kelly, K John Gough, QUT 2006-2010
 // (see accompanying GPPGcopyright.rtf)
 // This file author: John Gough
 

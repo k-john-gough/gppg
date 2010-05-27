@@ -1,5 +1,5 @@
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, QUT 2005-2007
+// Copyright (c) Wayne Kelly, QUT 2005-2010
 // (see accompanying GPPGcopyright.rtf)
 
 
