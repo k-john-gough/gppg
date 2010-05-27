@@ -2,9 +2,9 @@
 // Copyright (c) Wayne Kelly, QUT 2005-2010
 // (see accompanying GPPGcopyright.rtf)
 
-// GPPG version 1.3.7
+// GPPG version 1.4.1
 // Machine:  ATTIC-1
-// DateTime: 27/05/2010 4:38:14 PM
+// DateTime: 27/05/2010 8:58:00 PM
 // UserName: john
 // Input file <gppg.y>
 
