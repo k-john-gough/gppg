@@ -22,7 +22,7 @@ CmntStrt     \/\*
 CmntEnd      \*\/
 ABStar       [^\*\n\r]* 
 
-CodeSkip     [^@"/{}%] 
+CodeSkip     [^@"/{}'%] 
 OpChars      [<>\.\[\]{};:|,]
  
 DotChr       [^\r\n]
