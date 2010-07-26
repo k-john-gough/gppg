@@ -786,11 +786,16 @@ namespace QUT.Gppg
     /// </summary>
 #if EXPORT_GPPG
     public class State
+    {
+        public int number;
 #else
     internal class State
-#endif
     {
+      /// <summary>
+      /// The number of states in the automaton.
+      /// </summary>
         internal int number;
+#endif
         internal Dictionary<int, int> ParserTable;   // Terminal -> ParseAction
         internal Dictionary<int, int> Goto;          // NonTerminal -> State;
         internal int defaultAction; // = 0;		     // ParseAction
@@ -800,7 +805,7 @@ namespace QUT.Gppg
         /// goto array associate symbol ordinals with next state indices.
         /// The actions array is passed to another constructor. 
         /// </summary>
-        /// <param name="actions">The action list</param>
+        /// <param name="actions">The action list</param>c
         /// <param name="goToList">Next state data</param>
         public State(int[] actions, int[] goToList)
             : this(actions)
