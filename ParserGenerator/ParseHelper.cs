@@ -22,22 +22,22 @@ namespace QUT.GPGen.Parser
         internal Grammar Grammar { get { return grammar; } }
 
         private string baseName;
-        private string sourceName;
+        private string sourceFileInfo;
 
         internal string ListfileName { get { return baseName + ".lst"; } }
-        internal string SourceFileName { get { return sourceName; } }
+        internal string SourceFileInfo { get { return sourceFileInfo; } }
 
         private NonTerminal currentLHS;
 
         enum TokenProperty { token, left, right, nonassoc }
 
-        internal Parser(string filename, Scanner scanner, ErrorHandler handler)
+        internal Parser(string filename, string fileinfo, Scanner scanner, ErrorHandler handler)
             : base(scanner)
         {
             this.handler = handler;
-            this.sourceName = filename;
+            this.sourceFileInfo = fileinfo;
             this.baseName = System.IO.Path.GetFileNameWithoutExtension(filename);
-            grammar.InputFileName = filename;
+            grammar.InputFileIdent = fileinfo;
         }
 
         // ===============================================================

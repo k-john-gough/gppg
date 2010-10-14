@@ -206,17 +206,16 @@ OneLineCmnt  \/\/{DotChr}*
                                   switch (YY_START)
                                   {
                                     case INITIAL: 
-                                        BEGIN(TheRules);
                                         Error(60, TokenSpan()); 
                                         return (int)Token.kwPCPC;
                                     case TheRules: 
-                                        BEGIN(TheEpilog);
-                                        Error(60, TokenSpan()); 
+                                        Error(60, TokenSpan());
                                         return (int)Token.kwPCPC;
                                     default: break; 
                                   }
                               }
                             }
+                            
     <<EOF>>          {
                               if (braceNestingLevel != 0)
                                   Error(55, TokenSpan()); 

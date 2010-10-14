@@ -40,7 +40,7 @@ namespace QUT.GPGen
         internal string OutFileName;
         internal string TokFileName;
         internal string DiagFileName;
-        internal string InputFileName;
+        internal string InputFileIdent;
         internal string Namespace;
         internal string Visibility = "public";
         internal string ParserName = "Parser";
@@ -622,16 +622,17 @@ namespace QUT.GPGen
         }
 
 
-        static internal void HtmlHeader(StreamWriter wrtr, string name)
+        static internal void HtmlHeader(StreamWriter wrtr, string fileinfo)
         {
-            wrtr.WriteLine("<html><head><title>{0}</title></head>", name);
+            wrtr.WriteLine("<html><head><title>{0}</title></head>", fileinfo);
             wrtr.WriteLine("<body bgcolor=\"white\">");
             wrtr.WriteLine("<hr><pre>");
         }
 
         static internal void HtmlTrailer(StreamWriter wrtr)
         {
-            wrtr.WriteLine("</font></pre></hr></body></html>");
+            //wrtr.WriteLine("</font></pre></hr></body></html>");
+            wrtr.WriteLine("</pre></hr></body></html>");
         }
 
         static string ProductionAnchor(int prodNum)
@@ -641,7 +642,7 @@ namespace QUT.GPGen
 
         static string ProductionRef(int prodNum)
         {
-            return String.Format(CultureInfo.InvariantCulture, "<a href=\"#prod{0}\">rule {0}</font></a>", prodNum);
+            return String.Format(CultureInfo.InvariantCulture, "<a href=\"#prod{0}\">rule {0}</a>", prodNum);
         }
 
         static string StateAnchor(int stateNum)
@@ -652,7 +653,7 @@ namespace QUT.GPGen
 
         static string StateRef(int stateNum)
         {
-            return String.Format(CultureInfo.InvariantCulture, "<a href=\"#state{0}\">{0}</font></a>", stateNum);
+            return String.Format(CultureInfo.InvariantCulture, "<a href=\"#state{0}\">{0}</a>", stateNum);
         }
 
         static string Header2(string display)

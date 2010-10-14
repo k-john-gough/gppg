@@ -32,6 +32,7 @@ namespace QUT.GPGen
             Stream inputFile = null;
             Grammar grammar = null;
             ErrorHandler handler = new ErrorHandler();
+            string inputFileInfo = null;  // Filename plus revision time.
             Lexers.Scanner scanner = null;
             Parser.Parser parser = null;
 
@@ -49,6 +50,7 @@ namespace QUT.GPGen
                 try
                 {
                     inputFile = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    inputFileInfo = filename + " - " + File.GetLastWriteTime(filename).ToString();
                 }
                 catch (IOException x)
                 {
@@ -69,7 +71,7 @@ namespace QUT.GPGen
                 scanner = new Lexers.Scanner(inputFile);
                 scanner.SetHandler(handler);
 
-                parser = new Parser.Parser(filename, scanner, handler);
+                parser = new Parser.Parser(filename, inputFileInfo, scanner, handler);
                 // 
                 // If the parse is successful, then process the grammar.
                 // Otherwise just report the errors that have been listed.
@@ -91,8 +93,12 @@ namespace QUT.GPGen
                     // If the grammar has non-terminating non-terms we cannot
                     // create a diagnostic report as the grammar is incomplete.
                     //
+                    if (!handler.Errors) {
+                        CodeGenerator code = new CodeGenerator();
+                        code.Generate(states, grammar);
+                    }
+                    
                     bool DoDiagnose = Diagnose && !grammar.HasNonTerminatingNonTerms;
-
                     if (Report || DoDiagnose)
                     {
                         string htmlName = System.IO.Path.ChangeExtension(filename, ".report.html");
@@ -103,9 +109,9 @@ namespace QUT.GPGen
                             Grammar.HtmlHeader(htmlWriter, filename);
 
                             if (Report && DoDiagnose)
-                                grammar.GenerateCompoundReport(htmlWriter, filename, states);
+                                grammar.GenerateCompoundReport(htmlWriter, inputFileInfo, states);
                             else if (Report)
-                                grammar.GenerateReport(htmlWriter, filename, states);
+                                grammar.GenerateReport(htmlWriter, inputFileInfo, states);
 
                             Grammar.HtmlTrailer(htmlWriter);
 
@@ -120,11 +126,11 @@ namespace QUT.GPGen
                             Console.Error.WriteLine("Cannot create html output file {0}", htmlName);
                         }
                     }
-                    else if (!handler.Errors)
-                    {
-                        CodeGenerator code = new CodeGenerator();
-                        code.Generate(states, grammar);
-                    }
+                    //else if (!handler.Errors)
+                    //{
+                    //    CodeGenerator code = new CodeGenerator();
+                    //    code.Generate(states, grammar);
+                    //}
                 }
             }
             catch (System.Exception e)
@@ -132,7 +138,6 @@ namespace QUT.GPGen
                 if (e is TooManyErrorsException)
                     return;
                 Console.Error.WriteLine("Unexpected Error {0}", e.Message); 
-                throw; // Now rethrow the caught exception.
             }
             finally
             {
@@ -143,7 +148,7 @@ namespace QUT.GPGen
                     string listName = parser.ListfileName;
                     StreamWriter listStream = ListingFile(listName);
                     if (listStream != null)
-                        handler.MakeListing(scanner.Buffer, listStream, parser.SourceFileName, versionInfo);
+                        handler.MakeListing(scanner.Buffer, listStream, parser.SourceFileInfo, versionInfo);
                 }
             }
         }
