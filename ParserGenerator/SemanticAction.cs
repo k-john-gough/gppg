@@ -39,7 +39,7 @@ namespace QUT.GPGen
 
             if (doLines)
                 template = String.Format(CultureInfo.InvariantCulture, 
-                    "#line {{0}} \"{0}\"", codeGenerator.grammar.InputFileName);
+                    "#line {{0}} \"{0}\"", codeGenerator.grammar.InputFileIdent);
 
             int length = commands.Length;
             if (doLines)

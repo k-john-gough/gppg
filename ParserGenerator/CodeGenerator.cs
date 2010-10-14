@@ -48,7 +48,7 @@ namespace QUT.GPGen
                 {
                     FileStream fStrm = new FileStream(grammar.TokFileName, FileMode.Create);
                     tWrtr = new StreamWriter(fStrm);
-                    tWrtr.WriteLine("// Symbolic tokens for parser for grammar file \"{0}\"", grammar.InputFileName);
+                    tWrtr.WriteLine("// Symbolic tokens for parser for grammar file \"{0}\"", grammar.InputFileIdent);
                 }
                 catch (IOException x)
                 {
@@ -64,7 +64,7 @@ namespace QUT.GPGen
                 {
                     FileStream cStrm = new FileStream(grammar.DiagFileName, FileMode.Create);
                     cWrtr = new StreamWriter(cStrm);
-                    cWrtr.WriteLine("// Parser Conflict Information for grammar file \"{0}\"", grammar.InputFileName);
+                    cWrtr.WriteLine("// Parser Conflict Information for grammar file \"{0}\"", grammar.InputFileIdent);
                     cWrtr.WriteLine();
                 }
                 catch (IOException x)
@@ -90,10 +90,10 @@ namespace QUT.GPGen
 
             GenerateClassHeader(grammar.ParserName);
             if (grammar.prologCode.Count > 0) {
-              Console.WriteLine("  // Verbatim content from {0}", grammar.InputFileName);
+              Console.WriteLine("  // Verbatim content from {0}", grammar.InputFileIdent);
               foreach (LexSpan span in grammar.prologCode)
                 InsertCodeSpan(span);
-              Console.WriteLine("  // End verbatim content from {0}", grammar.InputFileName);
+              Console.WriteLine("  // End verbatim content from {0}", grammar.InputFileIdent);
               Console.WriteLine();
             }
             GenerateInitializeMethod(states, grammar.productions, grammar.nonTerminals);
@@ -135,7 +135,7 @@ namespace QUT.GPGen
             Console.WriteLine("// Machine:  " + Environment.MachineName);
             Console.WriteLine("// DateTime: " + DateTime.Now.ToString());
             Console.WriteLine("// UserName: " + Environment.UserName);
-            Console.WriteLine("// Input file <" + grammar.InputFileName + ">");
+            Console.WriteLine("// Input file <{0}>", grammar.InputFileIdent);
             Console.WriteLine();
 
             Console.Write("// options:");
@@ -432,7 +432,7 @@ namespace QUT.GPGen
                 string code = span.ToString();
                 string format = null;
                 if (GPCG.Lines)
-                    format = String.Format(CultureInfo.InvariantCulture, "#line {{0}} \"{0}\"", grammar.InputFileName);
+                    format = String.Format(CultureInfo.InvariantCulture, "#line {{0}} \"{0}\"", grammar.InputFileIdent);
 
                 StringReader reader = new StringReader(code);
                 while (true)

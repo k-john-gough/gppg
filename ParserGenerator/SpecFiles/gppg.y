@@ -34,8 +34,7 @@
 %token kwPartial "%partial", kwOutput "%output" 
 %token kwParsertype "%parsertype", kwTokentype "%tokentype", kwScanbasetype "%scanbasetype"  
 %token kwUsing "%using", kwVisibility "%visibility" 
-%token kwYYSTYPE "%YYSTYPE", kwYYLTYPE "%YYLTYPE" 
-
+%token kwYYSTYPE "%YYSTYPE", kwYYLTYPE "%YYLTYPE"
 %token maxParseToken errTok
 
 %type <tokenList> TokenList
@@ -63,6 +62,8 @@ EpilogOpt
 CodeBlock
     : codeStart codeEnd { /* default location action @$ = @1.Merge(@2); */ }
     | /* empty */
+    | codeStart error
+                        { handler.ListError(@1, 77); } 
     ;
     
     /* =============== Definition Section Productions =============== */

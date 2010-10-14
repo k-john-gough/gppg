@@ -145,6 +145,7 @@ namespace QUT.GPGen.Parser
                 case 74: message = "Unknown special marker in semantic action"; break;
                 case 75: message = "Bad separator character in list"; break;
                 case 76: message = "This name already defined as a terminal symbol"; break;
+                case 77: message = "Position of unmatched brace"; break;
 
                 // Warnings Issued by Either Scanner or Parser ...
                 case 100: message = "Optional numeric code ignored in this version"; break;
@@ -258,8 +259,8 @@ namespace QUT.GPGen.Parser
                     }
                     if (errN.span.startColumn > currentCol)
                     {
-                        Spaces(sWrtr, errN.span.startColumn - currentCol);
-                        currentCol = errN.span.startColumn;
+                        Spaces(sWrtr, errN.span.startColumn - currentCol - 1);
+                        currentCol = errN.span.startColumn - 1;
                     }
                     for (; currentCol < errN.span.endColumn && currentCol < 80; currentCol++ )
                         sWrtr.Write('^'); 
@@ -325,6 +326,11 @@ namespace QUT.GPGen.Parser
             if (buff == null) {
                 PanicDump(wrtr); return;
             }
+            //
+            //  Errors are sorted by line number
+            //
+            errors = SortedErrorList();
+            //
             int  line = 1;
             int  eNum = 0;
             int  eLin = 0;
@@ -399,7 +405,7 @@ namespace QUT.GPGen.Parser
                     if (currentCol == 0) {
                         wrtr.Write("-----");
                     }
-                    for (int i = currentCol; i < errors[eNum].span.startColumn; i++, currentCol++) {
+                    for (int i = currentCol; i < errors[eNum].span.startColumn - 1; i++, currentCol++) {
                         wrtr.Write('-');
                     } 
                     for ( ; currentCol < errors[eNum].span.endColumn && currentCol < 75; currentCol++)
