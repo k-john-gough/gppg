@@ -16,6 +16,12 @@ namespace QUT.GPGen
 {
     class GPCG
     {
+        // Main return codes
+        const int MC_OK = 0;
+        const int MC_FILEERROR = 1;
+        const int MC_TOOMANYERRORS = 2;
+        const int MC_EXCEPTION = 3; 
+
         public static bool Babel;
         public static bool Lines = true;
         public static bool Report;
@@ -26,8 +32,14 @@ namespace QUT.GPGen
         public static bool Conflicts;
         public static bool Listing;
         public static string versionInfo;
+
+        public static bool IncludeInfo = true;
+        public static bool NoThrowOnError;
+        public static bool NoFilename;
+        public static string OutFileName;
+        public static string LinesFilename;
         
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
             Stream inputFile = null;
             Grammar grammar = null;
@@ -45,7 +57,7 @@ namespace QUT.GPGen
                 string filename = ProcessOptions(args);
 
                 if (filename == null)
-                    return;
+                    return MC_OK;
 
                 try
                 {
@@ -65,7 +77,7 @@ namespace QUT.GPGen
                             "Source file <{0}> could not be opened{1}", 
                             filename, Environment.NewLine);
                     handler.AddError(message, null); // aast.AtStart;
-                    return;
+                    return MC_FILEERROR;
                 }
 
                 scanner = new Lexers.Scanner(inputFile);
@@ -126,18 +138,19 @@ namespace QUT.GPGen
                             Console.Error.WriteLine("Cannot create html output file {0}", htmlName);
                         }
                     }
-                    //else if (!handler.Errors)
-                    //{
-                    //    CodeGenerator code = new CodeGenerator();
-                    //    code.Generate(states, grammar);
-                    //}
                 }
             }
             catch (System.Exception e)
             {
                 if (e is TooManyErrorsException)
-                    return;
-                Console.Error.WriteLine("Unexpected Error {0}", e.Message); 
+                    return MC_TOOMANYERRORS;
+                Console.Error.WriteLine("Unexpected Error {0}", e.Message);
+
+                if (NoThrowOnError) {
+                   // report the error, do not let it go into the void
+                   Console.Error.WriteLine(e);
+                   return MC_EXCEPTION;
+                }
             }
             finally
             {
@@ -151,6 +164,7 @@ namespace QUT.GPGen
                         handler.MakeListing(scanner.Buffer, listStream, parser.SourceFileInfo, versionInfo);
                 }
             }
+            return MC_OK;
         }
 
         private static StreamWriter ListingFile(string outName)
@@ -176,7 +190,17 @@ namespace QUT.GPGen
             {
                 if (arg[0] == '-' || arg[0] == '/')
                 {
-                    string command = arg.Substring(1).ToUpperInvariant();
+                  string command;
+                  string argument = null;
+                  // split off the ':' part
+                  int colonIndex = arg.IndexOf(':');
+                  if (colonIndex == -1) {
+                    command = arg.Substring(1).ToUpperInvariant();
+                  }
+                  else {
+                    command = arg.Substring(1, colonIndex - 1).ToUpperInvariant();
+                    argument = arg.Substring(colonIndex + 1);
+                  }
                     switch (command)
                     {
                         case "?":
@@ -228,6 +252,21 @@ namespace QUT.GPGen
                         case "LISTING":
                             Listing = true;
                             break;
+                        case "O":
+                        case "OUT":
+                            OutFileName = argument;
+                            break;
+                        case "LINE-FILENAME":
+                            LinesFilename = argument;
+                            break;
+                        case "NOINFO":
+                        case "NO-INFO":
+                            IncludeInfo = false;
+                            break;
+                        case "NOTHROWONERROR":
+                        case "NOTHROW":
+                             NoThrowOnError = true;
+                             break;
                     }
                 }
                 else
@@ -245,17 +284,21 @@ namespace QUT.GPGen
         {
             Console.WriteLine("Usage gppg [options] filename");
             Console.WriteLine();
-            Console.WriteLine("/babel:      Generate class compatible with Managed Babel");
-            Console.WriteLine("/conflicts:  Emit \"conflicts\" file with full conflict details");
-            Console.WriteLine("/defines:    Emit \"tokens\" file with token name list");
-            // Console.WriteLine("/diagnose:   Write *.report.html file with LALR(1) state information");
-            Console.WriteLine("/gplex:      Generate scanner base class for GPLEX");
-            Console.WriteLine("/help:       Display this help message");
-            Console.WriteLine("/listing:    Emit listing file, even if no errors");
-            Console.WriteLine("/no-lines:   Suppress the generation of #line directives");
-            Console.WriteLine("/report:     Write *.report.html file with LALR(1) parsing states");
-            Console.WriteLine("/verbose:    Display extra information to console and in reports");
-            Console.WriteLine("/version:    Display version information");
+            Console.WriteLine("/babel          Generate class compatible with Managed Babel");
+            Console.WriteLine("/conflicts      Emit \"conflicts\" file with full conflict details");
+            Console.WriteLine("/defines        Emit \"tokens\" file with token name list");
+            Console.WriteLine("/gplex          Generate scanner base class for GPLEX");
+            Console.WriteLine("/help           Display this help message");
+            Console.WriteLine("/line-filename:name Point #line markers at file \"name\""); 
+            Console.WriteLine("/listing        Emit listing file, even if no errors");
+            Console.WriteLine("/no-info        Do not write extra information to parser header comment");
+            Console.WriteLine("/no-filename    Do not write the filename in the parser output file");
+            Console.WriteLine("/no-lines       Suppress the generation of #line directives");
+            Console.WriteLine("/noThrowOnError Do not exit without an error message");
+            Console.WriteLine("/output:name    Name the parser output \"name\"");
+            Console.WriteLine("/report         Write *.report.html file with LALR(1) parsing states");
+            Console.WriteLine("/verbose        Display extra information to console and in reports");
+            Console.WriteLine("/version        Display version information");
             Console.WriteLine();
         }
 

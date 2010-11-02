@@ -41,6 +41,7 @@ namespace QUT.GPGen
         internal string TokFileName;
         internal string DiagFileName;
         internal string InputFileIdent;
+        internal string InputFilename;
         internal string Namespace;
         internal string Visibility = "public";
         internal string ParserName = "Parser";
