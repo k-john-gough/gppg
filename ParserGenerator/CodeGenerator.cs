@@ -24,13 +24,19 @@ namespace QUT.GPGen
             TextWriter   save = Console.Out;
 
 			this.grammar = grammar;
-            if (grammar.OutFileName != null)
+
+            // did we specify out filename in command line or the file? (command line takes precedence)
+            string outFile = GPCG.OutFileName;
+            if (outFile == null)
+              outFile = grammar.OutFileName;
+
+            if (outFile != null)
             {
                 try
                 {
-                    FileStream fStrm = new FileStream(grammar.OutFileName, FileMode.Create);
+                    FileStream fStrm = new FileStream(outFile, FileMode.Create);
                     sWrtr = new StreamWriter(fStrm);
-                    Console.WriteLine("GPPG: sending output to {0}", grammar.OutFileName);
+                    Console.WriteLine("GPPG: sending output to {0}", outFile);
                     Console.SetOut(sWrtr);
                 }
                 catch (IOException x)
@@ -131,11 +137,17 @@ namespace QUT.GPGen
             Console.WriteLine("// Copyright (c) Wayne Kelly, QUT 2005-2010");
             Console.WriteLine("// (see accompanying GPPGcopyright.rtf)");
             Console.WriteLine();
-            Console.WriteLine("// GPPG version " + GPCG.versionInfo);
-            Console.WriteLine("// Machine:  " + Environment.MachineName);
-            Console.WriteLine("// DateTime: " + DateTime.Now.ToString());
-            Console.WriteLine("// UserName: " + Environment.UserName);
-            Console.WriteLine("// Input file <{0}>", grammar.InputFileIdent);
+            if (GPCG.IncludeInfo) {
+              Console.WriteLine("// GPPG version " + GPCG.versionInfo);
+              Console.WriteLine("// Machine:  " + Environment.MachineName);
+              Console.WriteLine("// DateTime: " + DateTime.Now.ToString());
+              Console.WriteLine("// UserName: " + Environment.UserName);
+              Console.WriteLine("// Input file <{0}>", grammar.InputFileIdent);
+            }
+
+            if (!GPCG.NoFilename)
+              Console.WriteLine("// Input file <" + grammar.InputFileIdent + ">");
+
             Console.WriteLine();
 
             Console.Write("// options:");
@@ -432,7 +444,7 @@ namespace QUT.GPGen
                 string code = span.ToString();
                 string format = null;
                 if (GPCG.Lines)
-                    format = String.Format(CultureInfo.InvariantCulture, "#line {{0}} \"{0}\"", grammar.InputFileIdent);
+                  format = String.Format(CultureInfo.InvariantCulture, "#line {{0}} \"{0}\"", GPCG.LinesFilename ?? grammar.InputFilename);
 
                 StringReader reader = new StringReader(code);
                 while (true)

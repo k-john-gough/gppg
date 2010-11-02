@@ -38,6 +38,7 @@ namespace QUT.GPGen.Parser
             this.sourceFileInfo = fileinfo;
             this.baseName = System.IO.Path.GetFileNameWithoutExtension(filename);
             grammar.InputFileIdent = fileinfo;
+            grammar.InputFilename = filename;
         }
 
         // ===============================================================
