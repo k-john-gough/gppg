@@ -35,10 +35,11 @@ UNIESC       \\U{HexDig}{8}
 ChrChs       [^\\'\a\b\f\n\r\t\v\0]
 StrChs       [^\\\"\a\b\f\n\r\t\v\0]
 VrbChs       [^\"] 
+VrbEsc       \"\"
 
 LitChr       \'({ChrChs}|{EscChr}|{OctEsc}|{HexEsc}|{UniEsc}|{UNIESC})\'
 LitStr       \"({StrChs}|{EscChr}|{OctEsc}|{HexEsc}|{UniEsc}|{UNIESC})*\"
-VrbStr       @\"({VrbChs}|{EscChr}|{OctEsc}|{HexEsc}|{UniEsc}|{UNIESC})*\"
+VrbStr       @\"({VrbChs}|{EscChr}|{OctEsc}|{HexEsc}|{UniEsc}|{UNIESC}|{VrbEsc})*\"
 BadStr       \"({StrChs}|{EscChr}|{OctEsc}|{HexEsc}|{UniEsc}|{UNIESC})*
 
 OneLineCmnt  \/\/{DotChr}*

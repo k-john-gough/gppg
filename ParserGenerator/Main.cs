@@ -254,9 +254,11 @@ namespace QUT.GPGen
                             break;
                         case "O":
                         case "OUT":
+                        case "OUTPUT":
                             OutFileName = argument;
                             break;
                         case "LINE-FILENAME":
+                        case "LINEFILENAME":
                             LinesFilename = argument;
                             break;
                         case "NOINFO":
@@ -295,7 +297,7 @@ namespace QUT.GPGen
             Console.WriteLine("/no-filename    Do not write the filename in the parser output file");
             Console.WriteLine("/no-lines       Suppress the generation of #line directives");
             Console.WriteLine("/noThrowOnError Do not exit without an error message");
-            Console.WriteLine("/output:name    Name the parser output \"name\"");
+            Console.WriteLine("/out:name       Name the parser output \"name\"");
             Console.WriteLine("/report         Write *.report.html file with LALR(1) parsing states");
             Console.WriteLine("/verbose        Display extra information to console and in reports");
             Console.WriteLine("/version        Display version information");
