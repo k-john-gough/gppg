@@ -145,8 +145,8 @@ namespace QUT.GPGen
               Console.WriteLine("// Input file <{0}>", grammar.InputFileIdent);
             }
 
-            if (!GPCG.NoFilename)
-              Console.WriteLine("// Input file <" + grammar.InputFileIdent + ">");
+            if (!GPCG.NoFilename && !GPCG.IncludeInfo)
+              Console.WriteLine("// Input file <{0}>", grammar.InputFileIdent);
 
             Console.WriteLine();
 

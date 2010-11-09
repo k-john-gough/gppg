@@ -26,28 +26,59 @@ dontcare [^@$\n\r]
 kindChrs [^>\n\r]
 kind     <{kindChrs}+>
 
+%x       LitString
+%x       VrbString
+%x       LitChar
+
 %%
 
 
-{eol}                 lineNo++; colNo = 0;
-{dontcare}            colNo++; 
+<LitChar>{
+  \'                   colNo++; BEGIN(0);
+  {eol}                handler.ListError(ErrSpan(1), 78);
+  \\\'                 colNo += 2;
+  .                    colNo++;
+}
 
-@\$                    |
-\$\$                    colNo += 2;
-
-${kind}{number}       {
+<LitString>{
+  \"                   colNo++; BEGIN(0);
+  {eol}                handler.ListError(ErrSpan(1), 78);
+  \\\"                 colNo += 2;
+  .                    colNo++;
+}
+  
+<VrbString>{
+  \"                   colNo++; BEGIN(0);
+  \"\"                 colNo += 2;
+  {eol}                lineNo++; colNo = 0;
+  .                    colNo++;
+}
+  
+<0>{
+  \'                   colNo++; BEGIN(LitChar);
+  \"                   colNo++; BEGIN(LitString);
+  @\"                  colNo += 2; BEGIN(VrbString);
+  
+  {eol}                lineNo++; colNo = 0;
+  {dontcare}           colNo++; 
+  
+  @\$                  |
+  \$\$                 colNo += 2;
+  
+  ${kind}{number}     {
                         CheckLengthWithKind(yytext); 
                         colNo += yytext.Length; 
                       }
                       
-@{number}             |
-${number}             {
+  @{number}           |
+  ${number}           {
                         CheckLength(yytext); 
                         colNo += yytext.Length; 
                       }
 
-@{dontcare}           |
-\${dontcare}          { handler.ListError(ErrSpan(2), 74); colNo += 2; }
+  @{dontcare}         |
+  \${dontcare}        { handler.ListError(ErrSpan(2), 74); colNo += 2; }
+}
 
 %%
 

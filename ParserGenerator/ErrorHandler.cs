@@ -146,6 +146,7 @@ namespace QUT.GPGen.Parser
                 case 75: message = "Bad separator character in list"; break;
                 case 76: message = "This name already defined as a terminal symbol"; break;
                 case 77: message = "Position of unmatched brace"; break;
+                case 78: message = "Literal string terminated by end of line"; break;
 
                 // Warnings Issued by Either Scanner or Parser ...
                 case 100: message = "Optional numeric code ignored in this version"; break;
