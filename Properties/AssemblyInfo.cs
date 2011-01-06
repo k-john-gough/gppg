@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Gppg")]
-[assembly: AssemblyDescription("Gardens Point Parser Generator version 1.4.3.1 (2010-11-09)")]
+[assembly: AssemblyDescription("Gardens Point Parser Generator version 1.4.4 (2011-01-06)")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("QUT")]
 [assembly: AssemblyProduct("Gppg")]
-[assembly: AssemblyCopyright("Copyright © Wayne Kelly, John Gough 2005-2010")]
+[assembly: AssemblyCopyright("Copyright © Wayne Kelly, John Gough 2005-2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.4.3.1")]
-[assembly: AssemblyFileVersion("1.4.3.1")]
+[assembly: AssemblyVersion("1.4.4")]
+[assembly: AssemblyFileVersion("1.4.4")]
