@@ -205,7 +205,7 @@ NtSymbolList
     | NtSymbolList CommaOpt NtSymbol          
                         { $1.Add(@3.ToString()); $$ = $1; }
     | NtSymbolList BadSeparator
-                        { handler.ListError(@2, 75); $$ = $1; }                        
+                        { handler.ListError(@2, 75); $$ = $1; }                       
     ;
     
 NtSymbol
@@ -215,8 +215,13 @@ NtSymbol
     
 TypeConstructor
     : DottedName '[' ']'
-    | DottedName '<' TypeConstructor '>'
+    | DottedName '<' TypeArguments '>'
     | DottedName
+    ;
+    
+TypeArguments
+    : TypeConstructor
+    | TypeArguments ',' TypeConstructor
     ;
     
 UnionTypeConstructor
