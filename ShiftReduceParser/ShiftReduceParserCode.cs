@@ -73,9 +73,9 @@ namespace QUT.Gppg
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         protected TSpan CurrentLocationSpan;
+        protected int NextToken;
 
         private TSpan LastSpan;
-        private int NextToken;
         private State FsaState;
         private bool recovering;
         private int tokensSinceLastError;
@@ -787,6 +787,9 @@ namespace QUT.Gppg
 #if EXPORT_GPPG
     public class State
     {
+        /// <summary>
+        /// The number of states in the automaton.
+        /// </summary>
         public int number;
 #else
     internal class State

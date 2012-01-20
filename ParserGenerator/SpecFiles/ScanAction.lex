@@ -34,15 +34,17 @@ kind     <{kindChrs}+>
 
 
 <LitChar>{
-  \'                   colNo++; BEGIN(0);
+  '                    colNo++; BEGIN(0);
   {eol}                handler.ListError(ErrSpan(1), 78);
-  \\\'                 colNo += 2;
+  \\\\                 |
+  \\'                  colNo += 2;
   .                    colNo++;
 }
 
 <LitString>{
   \"                   colNo++; BEGIN(0);
   {eol}                handler.ListError(ErrSpan(1), 78);
+  \\\\                 |
   \\\"                 colNo += 2;
   .                    colNo++;
 }
