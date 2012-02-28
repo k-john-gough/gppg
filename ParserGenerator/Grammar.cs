@@ -460,6 +460,11 @@ namespace QUT.GPGen
         // =====================================================================================
         #region ReportWriter
         // =====================================================================================
+        // The report diagnostic writer has been changed as of v1.4.7.
+        // It now includes predecessor states in the /verbose case to allow simpler single
+        // stepping through a parse.  As well, conflict messages appear after kernel items
+        // in the state data.
+        // =====================================================================================
 
         const int prodIndexWidth = 5;
         string indexSkip = new string( ' ', prodIndexWidth );
