@@ -25,6 +25,7 @@ namespace QUT.GPGen
 
         internal List<Symbol> shortestPrefix;
         internal List<AutomatonState> statePath;
+        internal List<AutomatonState> predecessors;
         internal List<Conflict> conflicts;
 
 		internal AutomatonState(Production production)
@@ -106,6 +107,13 @@ namespace QUT.GPGen
                 builder.AppendFormat("    {0}", item);
             }
             return builder.ToString();
+        }
+
+        internal void AddPredecessor( AutomatonState pred ) {
+            if (predecessors == null)
+                predecessors = new List<AutomatonState>();
+            if (!predecessors.Contains( pred ))
+                predecessors.Add( pred );
         }
 
 

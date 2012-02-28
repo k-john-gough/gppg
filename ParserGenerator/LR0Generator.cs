@@ -250,6 +250,19 @@ namespace QUT.GPGen
                 }
             } while (changed);
         }
+
+        internal static void PopulatePredecessors( List<AutomatonState> states ) {
+            foreach (AutomatonState state in states) {
+                if (state.predecessors == null)
+                    state.predecessors = new List<AutomatonState>();
+                foreach (AutomatonState symbolTarget in state.Goto.Values) {
+                    symbolTarget.AddPredecessor( state );
+                }
+                foreach (Transition nontermTransition in state.nonTerminalTransitions.Values) {
+                    nontermTransition.next.AddPredecessor( state );
+                }
+            }
+        }
     }
     #endregion
     // ===========================================================
