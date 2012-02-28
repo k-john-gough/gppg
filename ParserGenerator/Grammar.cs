@@ -461,6 +461,8 @@ namespace QUT.GPGen
         #region ReportWriter
         // =====================================================================================
 
+        const int prodIndexWidth = 5;
+        string indexSkip = new string( ' ', prodIndexWidth );
 
         internal void GenerateReport(StreamWriter writer, string inputFilename, List<AutomatonState> statelist)
         {
@@ -470,6 +472,7 @@ namespace QUT.GPGen
             foreach (AutomatonState state in statelist)
             {
                 writer.WriteLine(StateAnchor(state.num));
+                writer.Write(KernelToString(state));
                 writer.WriteLine(StateToString(state));
             }
         }
@@ -480,23 +483,29 @@ namespace QUT.GPGen
 
             WriteProductions(writer);
             DiagnosticHelp.PopulatePrefixes(statelist);
+            DiagnosticHelp.PopulatePredecessors( statelist );
+
             Mapper<string, AutomatonState> map = delegate(AutomatonState elemState) { return StateRef(elemState.num); };
 
             foreach (AutomatonState state in statelist)
             {
                 writer.WriteLine(StateAnchor(state.num));
-                DiagnoseState(writer, state, map, false);
+                DiagnoseState(writer, state, map);
                 writer.WriteLine(StateToString(state));
             }
         }
 
-        static void DiagnoseState<T>(StreamWriter writer, AutomatonState state, Mapper<T, AutomatonState> map, bool doKernel)
+        static void DiagnoseState<T>(StreamWriter writer, AutomatonState state, Mapper<T, AutomatonState> map)
         {
             // List<T> statePath = ListUtilities.Map<T, AutomatonState>(state.statePath, map);
-            IEnumerable<T> statePath = ListUtilities.MapC<T, AutomatonState>(state.statePath, map);
+            IEnumerable<T> statePath = ListUtilities.MapC<T, AutomatonState>( state.statePath, map );
+            IEnumerable<T> predList = ListUtilities.MapC<T, AutomatonState>( state.predecessors, map );
 
             writer.WriteLine("    Shortest prefix: {0}", ListUtilities.GetStringFromList(state.shortestPrefix, " ", 8));
-            writer.WriteLine("    State path: {0}", ListUtilities.GetStringFromList(statePath, "->", 8, false));
+            writer.WriteLine( "    Shortest path: {0}", ListUtilities.GetStringFromList( statePath, "->", 19, (ListUtilities.BreakRule)16 ) );
+            writer.WriteLine( "    Predecessors: {0}", ListUtilities.GetStringFromList( predList, ", ", 18, (ListUtilities.BreakRule)16 ) );
+            writer.Write( KernelToString( state ) );
+
             if (state.conflicts != null)
             {
                 writer.WriteLine();
@@ -506,53 +515,63 @@ namespace QUT.GPGen
                     conflict.HtmlReport(writer);
                 }
             }
-            if (doKernel)
-            {
-                writer.WriteLine("    Kernel items --");
-                foreach (ProductionItem item in state.kernelItems)
-                    writer.WriteLine("      {0}", ItemToString(item, false));
-            }
             writer.WriteLine();
         }
 
         void WriteProductions(StreamWriter writer)
         {
             NonTerminal lhs = null;
+            string padding = "";
 
             foreach (Production production in productions)
             {
-                int lhsLength = production.lhs.ToString().Length;
-
+                int lhsLength = 0; 
                 if (production.lhs != lhs)
                 {
+                    if ( lhs != null ) //  ==> this is a change to a new LHS, write terminating ';'
+                        writer.WriteLine( "{0} {1};", indexSkip, padding );
+                    lhsLength = production.lhs.ToString().Length;
+                    padding = new string( ' ', lhsLength );
                     lhs = production.lhs;
                     writer.WriteLine();
                     writer.Write("{0} {1}: ", ProductionAnchor(production.num), lhs);
                 }
                 else
-                    writer.Write("{0} {1}| ", ProductionAnchor(production.num), new string(' ', lhsLength));
+                    writer.Write("{0} {1}| ", ProductionAnchor(production.num), padding);
 
                 if (production.rhs.Count == 0)
                     writer.WriteLine("/* empty */");
                 else
                     writer.WriteLine(ListUtilities.GetStringFromList(production.rhs, " ", lhsLength + 12));
             }
-
+            writer.Write( "{0} {1};", indexSkip, padding );
             writer.WriteLine();
+        }
+
+        static string KernelToString( AutomatonState thisState ) {
+            System.Text.StringBuilder builder = new System.Text.StringBuilder();
+
+            builder.AppendLine();
+            builder.AppendLine( Header2( "Kernel Items" ) );
+            foreach (ProductionItem item in thisState.kernelItems) {
+                builder.AppendFormat( "    {0}", ItemToString( item, true ) );
+                builder.AppendLine();
+            }
+            return builder.ToString();
         }
 
         static string StateToString(AutomatonState thisState)
         {
             System.Text.StringBuilder builder = new System.Text.StringBuilder();
 
-            builder.AppendLine(Header2("Kernel Items"));
-            foreach (ProductionItem item in thisState.kernelItems)
-            {
-                builder.AppendFormat("    {0}", ItemToString(item, true));
-                builder.AppendLine();
-            }
+            //builder.AppendLine(Header2("Kernel Items"));
+            //foreach (ProductionItem item in thisState.kernelItems)
+            //{
+            //    builder.AppendFormat("    {0}", ItemToString(item, true));
+            //    builder.AppendLine();
+            //}
 
-            builder.AppendLine();
+            //builder.AppendLine();
 
             if (thisState.parseTable.Count > 0)
                 builder.AppendLine(Header2("Parser Actions"));
@@ -638,6 +657,7 @@ namespace QUT.GPGen
 
         static string ProductionAnchor(int prodNum)
         {
+            // prodIndexWidth == 5 in this case.
             return String.Format(CultureInfo.InvariantCulture, "<a name=\"prod{0}\">{0,5}</a>", prodNum);
         }
 
