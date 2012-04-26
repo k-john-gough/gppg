@@ -26,6 +26,8 @@ namespace QUT.GPGen
         public static bool Lines = true;
         public static bool Report;
         public static bool Defines;
+        public static bool ShareTokens;
+        public static bool ImportedTokens;
         public static bool ForGplex;
         public static bool Diagnose;
         public static bool Verbose;

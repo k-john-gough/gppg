@@ -133,7 +133,7 @@ OneLineCmnt  \/\/{DotChr}*
 ^%{Ident}                   { 
                               {
                                   Token kWord = GetKeyword(yytext); 
-                                  if (kWord == Token.kwOutput)
+                                  if (kWord == Token.kwOutput || kWord == Token.kwImportTokens)
                                       BEGIN(GetPath);
                                   return (int)kWord;
                               }
@@ -143,7 +143,7 @@ OneLineCmnt  \/\/{DotChr}*
                                   Token kWord = GetKeyword(yytext); 
                                   if (kWord != Token.errTok)
                                       Error(59, TokenSpan());
-                                  if (kWord == Token.kwOutput)
+                                  if (kWord == Token.kwOutput || kWord == Token.kwImportTokens)
                                       BEGIN(GetPath);
                                   return (int)kWord;
                               }
@@ -277,4 +277,4 @@ OneLineCmnt  \/\/{DotChr}*
 /* ------------------------------------------ */
 
 %%  
-/* User Code is all in LexHelper.cs */
+/* User Code is all in ScanHelper.cs */

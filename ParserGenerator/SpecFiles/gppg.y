@@ -31,7 +31,8 @@
 %token kwRight "%right", kwNonassoc "%nonassoc", kwPrec "%prec" 
 %token kwStart "%start", kwUnion "%union", kwDefines "%defines"
 %token kwLocations "%locations", kwNamespace "%namespace" 
-%token kwPartial "%partial", kwOutput "%output" 
+%token kwPartial "%partial", kwOutput "%output"
+%token kwShareTokens "%sharetokens", kwImportTokens "%importtokens"
 %token kwParsertype "%parsertype", kwTokentype "%tokentype", kwScanbasetype "%scanbasetype"  
 %token kwUsing "%using", kwVisibility "%visibility" 
 %token kwYYSTYPE "%YYSTYPE", kwYYLTYPE "%YYLTYPE"
@@ -88,7 +89,7 @@ Definition
     
 Declaration
     : kwToken KindOpt TokenList
-						{ DeclareTokens(PrecType.token, @2.ToString(), $3); }
+						{ DeclareTokens(@1, PrecType.token, @2.ToString(), $3); }
 						
     | kwType Kind NtSymbolList
 						{
@@ -97,13 +98,13 @@ Declaration
 						}
 
     | kwLeft KindOpt TokenList
-						{ DeclareTokens(PrecType.left, @2.ToString(), $3); }
+						{ DeclareTokens(@1, PrecType.left, @2.ToString(), $3); }
 
     | kwRight KindOpt TokenList
-						{ DeclareTokens(PrecType.right, @2.ToString(), $3); }
+						{ DeclareTokens(@1, PrecType.right, @2.ToString(), $3); }
 
     | kwNonassoc KindOpt TokenList
-						{ DeclareTokens(PrecType.nonassoc, @2.ToString(), $3); }
+						{ DeclareTokens(@1, PrecType.nonassoc, @2.ToString(), $3); }
 
     | kwStart NtSymbol
 						{ grammar.startSymbol = grammar.LookupNonTerminal(@2.ToString()); }
@@ -111,11 +112,25 @@ Declaration
     | kwUnion TypeNameOpt UnionTypeConstructor
 						{ grammar.unionType = @3; }
 
-    | kwLocations		{  handler.ListError(@1, 101); }
+    | kwLocations		{ handler.ListError(@1, 101); }
 
     | kwDefines			{ GPCG.Defines = true; }
     
     | kwPartial			{ grammar.IsPartial = true; }
+
+	| kwShareTokens     { GPCG.ShareTokens = true; }
+
+	| kwImportTokens '=' filePath
+						{ GPCG.ImportedTokens = true;
+						  grammar.DatFileName = @3.ToString(); }
+
+	| kwImportTokens '=' litstring
+						{ GPCG.ImportedTokens = true;
+						  grammar.DatFileName = GetLitString(@3); }
+						
+    | kwImportTokens '=' verbatim
+						{ GPCG.ImportedTokens = true;
+						  grammar.DatFileName = GetVerbatimString(@3); }
 
     | kwNamespace DottedName
 						{ grammar.Namespace = @2.ToString(); }

@@ -109,6 +109,7 @@ namespace QUT.GPGen.Parser
             {
                 // Syntactic Errors Detected by the Parser ...
                 case 70: prefix = "Invalid string escape"; suffix = ""; break;
+                case 82: prefix = "Character literal"; suffix = "exceeds maximum in imported token type"; break;
                 case 103: prefix = "Highest char literal token"; suffix = "is very large"; break;
 
                 default: prefix = "Error " + Convert.ToString(num, CultureInfo.InvariantCulture); suffix = "";
@@ -147,6 +148,9 @@ namespace QUT.GPGen.Parser
                 case 76: message = "This name already defined as a terminal symbol"; break;
                 case 77: message = "Position of unmatched brace"; break;
                 case 78: message = "Literal string terminated by end of line"; break;
+                case 79: message = "Cannot define tokens AND declare %importtokens"; break;
+                case 80: message = "Cannot declare %sharetokens AND %importtokens"; break;
+                case 81: message = "Cannot declare %importtokens AND extra tokens"; break;
 
                 // Warnings Issued by Either Scanner or Parser ...
                 case 100: message = "Optional numeric code ignored in this version"; break;

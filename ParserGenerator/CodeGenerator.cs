@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Text;
 using System.Globalization;
@@ -50,17 +52,37 @@ namespace QUT.GPGen
 
             if (grammar.TokFileName != null) // generate token list file
             {
-                try
-                {
-                    FileStream fStrm = new FileStream(grammar.TokFileName, FileMode.Create);
-                    tWrtr = new StreamWriter(fStrm);
-                    tWrtr.WriteLine("// Symbolic tokens for parser for grammar file \"{0}\"", grammar.InputFileIdent);
+                try {
+                    FileStream fStrm = new FileStream( grammar.TokFileName, FileMode.Create );
+                    tWrtr = new StreamWriter( fStrm );
+                    tWrtr.WriteLine( "// Symbolic tokens for parser for grammar file \"{0}\"", grammar.InputFileIdent );
                 }
-                catch (IOException x)
-                {
-                    Console.Error.WriteLine("GPPG: Error. Failed to create token namelist file");
-                    Console.Error.WriteLine(x.Message);
+                catch (IOException x) {
+                    Console.Error.WriteLine( "GPPG: Error. Failed to create token namelist file" );
+                    Console.Error.WriteLine( x.Message );
                     tWrtr = null;
+                }
+            }
+
+            if (GPCG.ShareTokens && grammar.DatFileName != null) // serialize Terminals dictionary.
+            {
+                FileStream fStrm = null;
+                try {
+                    // Insert marker to carry Terminal.max into the serialized structure.
+                    Terminal.InsertMaxDummyTerminalInDictionary( grammar.terminals );
+                   
+                    fStrm = new FileStream( grammar.DatFileName, FileMode.Create );
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize( fStrm, grammar.terminals );
+                }
+                catch (IOException x) {
+                    Console.Error.WriteLine( "GPPG: Error. Failed to create token serialization file" );
+                    Console.Error.WriteLine( x.Message );
+                }
+                finally {
+                    if (fStrm != null)
+                        fStrm.Close();
+                    Terminal.RemoveMaxDummyTerminalFromDictionary( grammar.terminals );
                 }
             }
 
@@ -91,7 +113,8 @@ namespace QUT.GPGen
                 Console.WriteLine('{');
             }
 
-			GenerateTokens(grammar.terminals, tWrtr);
+            if (!GPCG.ImportedTokens)
+			    GenerateTokens(grammar.terminals, tWrtr);
             grammar.ReportConflicts(cWrtr);
 
             GenerateClassHeader(grammar.ParserName);

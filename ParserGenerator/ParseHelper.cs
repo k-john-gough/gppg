@@ -8,6 +8,7 @@ using System.Collections;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using QUT.GPGen.Lexers;
 using QUT.GplexBuffers;
 
@@ -64,9 +65,11 @@ namespace QUT.GPGen.Parser
 
 
 
-        private void DeclareTokens(PrecType prop, string kind, List<TokenInfo> list)
+        private void DeclareTokens(LexSpan span1, PrecType prop, string kind, List<TokenInfo> list)
         {
             grammar.BumpPrec();
+            if (GPCG.ImportedTokens)
+                handler.ListError( span1, 81 );
             foreach (TokenInfo info in list) {
                 Token token = (IsLitChar(info.name) ? Token.litchar : Token.ident);
                 Terminal t = grammar.LookupOrDefineTerminal(token, info.name, info.alias);
@@ -112,18 +115,52 @@ namespace QUT.GPGen.Parser
             }
         }
 
+        /// <summary>
+        /// This method is called when the divider "%%" signals the
+        /// end of the defnitions section and the start of productions.
+        /// </summary>
+        /// <param name="def">The divider token text span</param>
         private void TidyUpDefinitions(LexSpan def)
         {
             handler.DefaultSpan = def;
-            if (GPCG.Defines) grammar.TokFileName = baseName + ".tokens";
+            if (GPCG.Defines) {
+                grammar.TokFileName = baseName + ".tokens";
+            }
+            if (GPCG.ShareTokens) {
+                grammar.DatFileName = baseName + ".dat";
+            }
             if (GPCG.Conflicts) grammar.DiagFileName = baseName + ".conflicts";
             // If both %union AND %YYSTYPE have been set, YYSTYPE must be
             // a simple name, and not a type-constructor. Check this now!
             if (grammar.unionType != null && 
                 grammar.ValueTypeName != null &&
-                grammar.ValueTypeName.LastIndexOfAny(new char[] { '.', '[', '<' }) > 0)
-            {
+                grammar.ValueTypeName.LastIndexOfAny(new char[] { '.', '[', '<' }) > 0) {
                 handler.ListError(grammar.ValueTypeNameSpan, 71);
+            }
+            // If %importtokens has been declared then there must be no
+            // other %token, %left, %right and so on declarations.
+            if (GPCG.ImportedTokens) {
+                // Terminal should only contain the two token
+                // values added by default: error, and EOF.
+                if (grammar.terminals.Count > 2)
+                    handler.ListError( def, 79 );
+                if (GPCG.ShareTokens)
+                    handler.ListError( def, 80 );
+                FileStream fStrm = null;
+                try {
+                    fStrm = new FileStream( grammar.DatFileName, FileMode.Open );
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    grammar.terminals = (Dictionary<string, Terminal>)formatter.Deserialize( fStrm );
+                    Terminal.RemoveMaxDummyTerminalFromDictionary( grammar.terminals );
+                }
+                catch (Exception x) {
+                    Console.Error.WriteLine( "GPPG: Error. Failed to deserialize file {0}", grammar.DatFileName );
+                    Console.Error.WriteLine( x.Message );
+                }
+                finally {
+                    if (fStrm != null)
+                        fStrm.Close();
+                }
             }
         }
 
@@ -183,6 +220,8 @@ namespace QUT.GPGen.Parser
                     switch (TokenOf(str))
                     {
                         case Token.litchar:
+                            if (GPCG.ImportedTokens && Terminal.BumpsMax( str ))
+                                handler.ListError( this.CurrentLocationSpan, 82, str, '\0' );                                
                             symbol = grammar.LookupTerminal(Token.litchar, str);
                             break;
                         case Token.litstring:
@@ -211,7 +250,7 @@ namespace QUT.GPGen.Parser
             {
                 if (prod.semanticAction != null || prod.precSpan != null)
                     FixInternalReduction(prod);
-                LexSpan cSpan = proxy.codeBlock;      // LexSpan of action code
+                LexSpan cSpan = proxy.codeBlock;            // LexSpan of action code
                 LexSpan pSpan = proxy.precedenceToken;      // LexSpan of ident in %prec ident
                 if (pSpan != null)
                 {
@@ -365,33 +404,6 @@ namespace QUT.GPGen.Parser
         {
             return new LexSpan(startLine, startColumn, end.endLine, end.endColumn, startIndex, end.endIndex, buffer);
         }
-
-        //internal bool IsInitialized { get { return buffer != null; } }
-
-        /// <summary>
-        /// Write the text of this text span to the stream
-        /// </summary>
-        /// <param name="sWtr"></param>
-        //internal void StreamDump(TextWriter sWtr)
-        //{
-        //    int savePos = buffer.Pos;
-        //    string str = buffer.GetString(startIndex, endIndex);
-
-        //    sWtr.WriteLine(str);
-        //    buffer.Pos = savePos;
-        //    sWtr.Flush();
-        //}
-
-        /// <summary>
-        /// Write the text of this text span to the console
-        /// </summary>
-        //internal void ConsoleDump()
-        //{
-        //    int savePos = buffer.Pos;
-        //    string str = buffer.GetString(startIndex, endIndex);
-        //    Console.WriteLine(str);
-        //    buffer.Pos = savePos;
-        //}
 
         public override string ToString()
         {

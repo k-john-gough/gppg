@@ -13,55 +13,58 @@ namespace QUT.GPGen.Lexers
         private ErrorHandler yyhdlr;
         internal void SetHandler(ErrorHandler hdlr) { yyhdlr = hdlr; }
 
-        private Token GetKeyword(string text)
-        {
-             text = text.Substring(1);
-             switch (text)
-             {
-             case "token":  
-                 return Token.kwToken;
-             case "type":  
-                 return Token.kwType;
-             case "left":  
-                 return Token.kwLeft;
-             case "right":  
-                 return Token.kwRight;
-             case "nonassoc":  
-                 return Token.kwNonassoc;
-             case "prec":  
-                 return Token.kwPrec;
-             case "start":  
-                 return Token.kwStart;
-             case "union":  
-                 return Token.kwUnion;
-             case "defines":  
-                 return Token.kwDefines;
-             case "locations":  
-                 return Token.kwLocations;
-             case "namespace":  
-                 return Token.kwNamespace;
-             case "partial":  
-                 return Token.kwPartial;
-             case "output":  
-                 return Token.kwOutput;
-             case "parsertype":  
-                 return Token.kwParsertype;
-             case "tokentype":
-                 return Token.kwTokentype;
-             case "scanbasetype":
-                 return Token.kwScanbasetype;
-             case "using":  
-                 return Token.kwUsing;
-             case "visibility":  
-                 return Token.kwVisibility;
-             case "YYSTYPE":  case "valuetype":  
-                 return Token.kwYYSTYPE;
-             case "YYLTYPE":  
-                 return Token.kwYYLTYPE;
-             default:
-                 Error(50, TokenSpan());
-                return Token.errTok;
-             }
+        private Token GetKeyword( string text ) {
+            text = text.Substring( 1 );
+            switch (text) {
+                case "token":
+                    return Token.kwToken;
+                case "type":
+                    return Token.kwType;
+                case "left":
+                    return Token.kwLeft;
+                case "right":
+                    return Token.kwRight;
+                case "nonassoc":
+                    return Token.kwNonassoc;
+                case "prec":
+                    return Token.kwPrec;
+                case "start":
+                    return Token.kwStart;
+                case "union":
+                    return Token.kwUnion;
+                case "defines":
+                    return Token.kwDefines;
+                case "locations":
+                    return Token.kwLocations;
+                case "namespace":
+                    return Token.kwNamespace;
+                case "partial":
+                    return Token.kwPartial;
+                case "output":
+                    return Token.kwOutput;
+                case "sharetokens":
+                    return Token.kwShareTokens;
+                case "importtokens":
+                    return Token.kwImportTokens;
+                case "parsertype":
+                    return Token.kwParsertype;
+                case "tokentype":
+                    return Token.kwTokentype;
+                case "scanbasetype":
+                    return Token.kwScanbasetype;
+                case "using":
+                    return Token.kwUsing;
+                case "visibility":
+                    return Token.kwVisibility;
+                case "YYSTYPE":
+                case "valuetype":
+                    return Token.kwYYSTYPE;
+                case "YYLTYPE":
+                    return Token.kwYYLTYPE;
+                default:
+                    Error( 50, TokenSpan() );
+                    return Token.errTok;
+            }
         }
 
 
