@@ -39,6 +39,7 @@ namespace QUT.GPGen
         internal bool IsPartial;
         internal string OutFileName;
         internal string TokFileName;
+        internal string DatFileName;
         internal string DiagFileName;
         internal string InputFileIdent;
         internal string InputFilename;
@@ -52,8 +53,6 @@ namespace QUT.GPGen
         internal string PartialMark { get { return (IsPartial ? " partial" : ""); } }
         internal LexSpan ValueTypeNameSpan;
 
-        // Experimental features
-        // readonly List<Terminal> emptyTerminalList;
         ErrorHandler handler;
         bool hasNonTerminatingNonTerms;
 
@@ -66,7 +65,6 @@ namespace QUT.GPGen
         {
 			LookupTerminal(Token.ident, "error");
 			LookupTerminal(Token.ident, "EOF");
-            // emptyTerminalList = new List<Terminal>();
         }
 
 
@@ -75,11 +73,10 @@ namespace QUT.GPGen
             bool isIdent = (token == Token.ident);
             // Canonicalize escaped char-literals
             if (!isIdent)
-                name = CharacterUtilities.Canonicalize(name, 1);
+                name = CharacterUtilities.Canonicalize( name, 1 );
             // Check if already present in dictionary
-            if (!terminals.ContainsKey(name)) // else insert ...
-                terminals[name] = new Terminal(isIdent, name);
-
+            if (!terminals.ContainsKey(name))  // else insert ...
+                terminals[name] = new Terminal( isIdent, name );
             return terminals[name];
         }
 
@@ -90,44 +87,37 @@ namespace QUT.GPGen
             if (!isIdent)
                 name = CharacterUtilities.Canonicalize(name, 1);
             // Check if already present in dictionary
-            if (!terminals.ContainsKey(name)) // else insert ...
-            {
+            if (!terminals.ContainsKey(name))  {  // else insert ...
                 Terminal newTerm = new Terminal(isIdent, name, alias);
                 terminals[name] = newTerm;
                 if (alias != null)
                     aliasTerms[alias] = newTerm;
             }
-
             return terminals[name];
         }
 
 
-		internal NonTerminal LookupNonTerminal(string name)
-		{
+		internal NonTerminal LookupNonTerminal(string name) {
 			if (!nonTerminals.ContainsKey(name))
 				nonTerminals[name] = new NonTerminal(name);
-
 			return nonTerminals[name];
 		}
 
 
-		internal void AddProduction(Production production)
-		{
+		internal void AddProduction(Production production) {
 			productions.Add(production);
 			production.num = productions.Count;
 		}
 
 
-		internal void CreateSpecialProduction(NonTerminal root)
-		{
+		internal void CreateSpecialProduction(NonTerminal root)	{
 			rootProduction = new Production(LookupNonTerminal("$accept"));
 			AddProduction(rootProduction);
 			rootProduction.rhs.Add(root);
             rootProduction.rhs.Add(LookupTerminal(Token.ident, "EOF"));
 		}
 
-        void MarkReachable()
-        {
+        void MarkReachable() {
             Stack<NonTerminal> work = new Stack<NonTerminal>();
             rootProduction.lhs.reached = true; // by definition.
             work.Push(startSymbol);

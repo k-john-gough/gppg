@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace QUT.GPGen
 {
+    [Serializable]
 	internal abstract class Symbol
 	{
 		private string name;
@@ -26,12 +27,6 @@ namespace QUT.GPGen
 			this.name = name;
 		}
 
-        //protected void Rename(string newname)
-        //{
-        //    this.name = newname;
-        //}
-
-
 		public override string ToString()
 		{
 			return name;
@@ -41,7 +36,7 @@ namespace QUT.GPGen
 		internal abstract bool IsNullable();
 	}
 
-
+    [Serializable]
 	internal class Terminal : Symbol
 	{
         static int count;
@@ -71,7 +66,7 @@ namespace QUT.GPGen
         /// canonicalized according to some convention. In this 
         /// application CharUtils.Canonicalize().
         /// </summary>
-        /// <param name="symbolic">Means "is an ident"</param>
+        /// <param name="symbolic">Means "is an ident, not a literal character"</param>
         /// <param name="name">string representation of symbol</param>
 		internal Terminal(bool symbolic, string name)
         	: base(name)
@@ -94,10 +89,9 @@ namespace QUT.GPGen
         }
 
 
-		internal override bool IsNullable()
-		{
-			return false;
-		}
+		internal override bool IsNullable() { return false;	}
+
+        internal string EnumName() { return base.ToString(); }
 
         public override string ToString()
         {
@@ -107,12 +101,27 @@ namespace QUT.GPGen
                 return base.ToString();
         }
 
-        internal string EnumName()
-        {
-            return base.ToString();
+        internal static void InsertMaxDummyTerminalInDictionary( Dictionary<string, Terminal> table ) {
+            Terminal maxTerm = null;
+            if (Terminal.Max != 0) {
+                string maxChr = CharacterUtilities.QuoteMap( Terminal.Max ); // FIXME
+                maxTerm = table[maxChr];
+            }
+            table["@Max@"] = maxTerm;
+        }
+
+        internal static void RemoveMaxDummyTerminalFromDictionary( Dictionary<string, Terminal> table ) {
+            Terminal maxTerm = table["@Max@"];
+            max = (maxTerm != null ? maxTerm.n : 0);
+            table.Remove( "@Max@" );
+        }
+
+        internal static bool BumpsMax( string str ) {
+            string num = CharacterUtilities.Canonicalize( str, 1 );
+            int ord = CharacterUtilities.OrdinalOfCharacterLiteral( str, 1 );
+            return ord > Terminal.max;
         }
 	}
-
 
 
 	internal class NonTerminal : Symbol

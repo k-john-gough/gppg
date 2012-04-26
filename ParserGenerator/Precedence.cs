@@ -10,6 +10,7 @@ namespace QUT.GPGen
 {
 	internal enum PrecType { left, right, nonassoc, token };
  
+    [Serializable]
 	internal class Precedence
 	{
 		internal PrecType type;

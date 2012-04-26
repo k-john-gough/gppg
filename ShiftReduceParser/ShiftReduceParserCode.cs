@@ -221,7 +221,8 @@ namespace QUT.Gppg
             while (true)
             {
 #if TRACE_ACTIONS
-                    Console.Error.WriteLine("Entering state {0} ", FsaState.number);
+                Console.Error.WriteLine("Entering state {0} ", FsaState.number);
+                DisplayStack();
 #endif
                 int action = FsaState.defaultAction;
 
@@ -229,18 +230,18 @@ namespace QUT.Gppg
                 {
                     if (NextToken == 0)
                     {
-#if TRACE_ACTIONS
-                            Console.Error.Write("Reading a token: ");
-#endif
                         // We save the last token span, so that the location span
                         // of production right hand sides that begin or end with a
                         // nullable production will be correct.
                         LastSpan = scanner.yylloc;
                         NextToken = scanner.yylex();
-                    }
-
 #if TRACE_ACTIONS
-                        Console.Error.WriteLine("Next token is {0}", TerminalToString(NextToken));
+                       Console.Error.WriteLine( "Reading: Next token is {0}", TerminalToString( NextToken ) );
+#endif
+                    }
+#if TRACE_ACTIONS
+                    else 
+                        Console.Error.WriteLine( "Next token is still {0}", TerminalToString( NextToken ) );
 #endif
                     if (FsaState.ParserTable.ContainsKey(NextToken))
                         action = FsaState.ParserTable[NextToken];
@@ -350,10 +351,6 @@ namespace QUT.Gppg
                 valueStack.Pop();
                 LocationStack.Pop();
             }
-
-#if TRACE_ACTIONS
-				DisplayStack();
-#endif
             FsaState = StateStack.TopElement();
 
             if (FsaState.Goto.ContainsKey(rule.LeftHandSide))
@@ -444,12 +441,12 @@ namespace QUT.Gppg
                 LocationStack.Pop();
 
 #if TRACE_ACTIONS
-					DisplayStack();
+			    DisplayStack();
 #endif
                 if (StateStack.IsEmpty())
                 {
 #if TRACE_ACTIONS
-                        Console.Error.Write("Aborting: didn't find a state that accepts error token");
+                        Console.Error.WriteLine("Aborting: didn't find a state that accepts error token");
 #endif
                     return false;
                 }
