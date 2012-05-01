@@ -244,39 +244,53 @@ namespace QUT.GPGen
             // else we have a value type name declared, but no "union"
 		}
 
-        private void GenerateScannerBaseClass()
-        {
-            Console.WriteLine("// Abstract base class for GPLEX scanners");
-            Console.WriteLine("{0} abstract class {1} : AbstractScanner<{2},{3}> {{",
-                grammar.Visibility, grammar.ScanBaseName, grammar.ValueTypeName, grammar.LocationTypeName);
-            Console.WriteLine("  private {0} __yylloc = new {0}();", grammar.LocationTypeName);
-            Console.Write("  public override {0} yylloc", grammar.LocationTypeName);
-            Console.WriteLine(" { get { return __yylloc; } set { __yylloc = value; } }");
-            Console.WriteLine("  protected virtual bool yywrap() { return true; }");
-            if (GPCG.Babel)
-            {
+        private void GenerateScannerBaseClass() {
+            Console.WriteLine( "// Abstract base class for GPLEX scanners" );
+            Console.WriteLine( "{0} abstract class {1} : AbstractScanner<{2},{3}> {{",
+                grammar.Visibility, grammar.ScanBaseName, grammar.ValueTypeName, grammar.LocationTypeName );
+            Console.WriteLine( "  private {0} __yylloc = new {0}();", grammar.LocationTypeName );
+            Console.Write( "  public override {0} yylloc", grammar.LocationTypeName );
+            Console.WriteLine( " { get { return __yylloc; } set { __yylloc = value; } }" );
+            Console.WriteLine( "  protected virtual bool yywrap() { return true; }" );
+            if (GPCG.Babel) {
                 Console.WriteLine();
-                Console.WriteLine("  protected abstract int CurrentSc { get; set; }");
-                Console.WriteLine("  //");
-                Console.WriteLine("  // Override the virtual EolState property if the scanner state is more");
-                Console.WriteLine("  // complicated then a simple copy of the current start state ordinal");
-                Console.WriteLine("  //");
-                Console.WriteLine("  public virtual int EolState { get { return CurrentSc; } set { CurrentSc = value; } }");
-                Console.WriteLine('}');
+                Console.WriteLine( "  protected abstract int CurrentSc { get; set; }" );
+                Console.WriteLine( "  //" );
+                Console.WriteLine( "  // Override the virtual EolState property if the scanner state is more" );
+                Console.WriteLine( "  // complicated then a simple copy of the current start state ordinal" );
+                Console.WriteLine( "  //" );
+                Console.WriteLine( "  public virtual int EolState { get { return CurrentSc; } set { CurrentSc = value; } }" );
+                Console.WriteLine( '}' );
                 Console.WriteLine();
-                Console.WriteLine("// Interface class for 'colorizing' scanners");
-                Console.WriteLine("public interface IColorScan {");
-                Console.WriteLine("  void SetSource(string source, int offset);");
-                Console.WriteLine("  int GetNext(ref int state, out int start, out int end);");
+                Console.WriteLine( "// Interface class for 'colorizing' scanners" );
+                Console.WriteLine( "public interface IColorScan {" );
+                Console.WriteLine( "  void SetSource(string source, int offset);" );
+                Console.WriteLine( "  int GetNext(ref int state, out int start, out int end);" );
             }
-            Console.WriteLine('}');
+            Console.WriteLine( '}' );
             Console.WriteLine();
         }
 
-		private void GenerateClassHeader(string name)
+        private void GenerateScanObjClass() {
+            Console.WriteLine( "// Utility class for encapsulating token information" );
+            Console.WriteLine( "{0} class ScanObj {{", grammar.Visibility );
+            Console.WriteLine( "  public int token;" );
+            Console.WriteLine( "  public {0} yylval;", grammar.ValueTypeName );
+            Console.WriteLine( "  public {0} yylloc;", grammar.LocationTypeName );
+            Console.WriteLine( "  public ScanObj( int t, {0} val, {1} loc ) {{", grammar.ValueTypeName, grammar.LocationTypeName );
+            Console.WriteLine( "    this.token = t; this.yylval = val; this.yylloc = loc;" );
+            Console.WriteLine( "  }" );
+            Console.WriteLine( '}' );
+            Console.WriteLine();
+        }
+
+        private void GenerateClassHeader( string name )
         {
             GenerateValueType();
-            if (GPCG.ForGplex) GenerateScannerBaseClass();
+            if (GPCG.ForGplex) {
+                GenerateScannerBaseClass();
+                GenerateScanObjClass();
+            }
             Console.WriteLine("{2}{3} class {0}: ShiftReduceParser<{1}, {4}>", 
                 name, grammar.ValueTypeName, grammar.Visibility, grammar.PartialMark, grammar.LocationTypeName);
             Console.WriteLine('{');
