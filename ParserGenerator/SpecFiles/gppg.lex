@@ -9,6 +9,12 @@
 
 %option stack, minimize, parser, verbose, persistbuffer, noembedbuffers, out:Scanner.cs
 
+/* 
+ * Expected file format is Unicode. In the event that no 
+ * byte order mark prefix is found, revert to raw bytes.
+ */
+%option unicode, codepage:raw
+
 Eol             (\r\n?|\n)
 NotWh           [^ \t\r\n]
 Space           [ \t]

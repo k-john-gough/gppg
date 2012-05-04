@@ -308,6 +308,7 @@ namespace QUT.GPGen
 			List<Production> productions, 
 			Dictionary<string, NonTerminal> nonTerminals)
         {
+            // warning 649 : this field never assigned to.
             Console.WriteLine("#pragma warning disable 649");
             Console.WriteLine("  private static Dictionary<int, string> aliasses;");
             Console.WriteLine("#pragma warning restore 649");
@@ -439,6 +440,8 @@ namespace QUT.GPGen
         {
             Console.WriteLine("  protected override void DoAction(int action)");
             Console.WriteLine("  {");
+            // warning 162 : unreachable code; 1522 empty switch block
+            Console.WriteLine( "#pragma warning disable 162, 1522" );
             Console.WriteLine("    switch (action)");
             Console.WriteLine("    {");
             foreach(Production production in productions)
@@ -453,6 +456,7 @@ namespace QUT.GPGen
                 }
             }
             Console.WriteLine("    }");
+            Console.WriteLine( "#pragma warning restore 162, 1522" );
             Console.WriteLine("  }");
             Console.WriteLine();
         }

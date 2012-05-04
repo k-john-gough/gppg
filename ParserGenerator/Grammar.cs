@@ -189,6 +189,7 @@ namespace QUT.GPGen
                 List<NonTerminal> ntDependencies = BuildDependencyGraph();
                 hasNonTerminatingNonTerms = true;
                 handler.AddError(
+                    5,
                     String.Format(CultureInfo.InvariantCulture, "There are {0} non-terminating NonTerminal Symbols{1} {{{2}}}",
                         nonTerminatingCount,
                         System.Environment.NewLine,
@@ -268,7 +269,7 @@ namespace QUT.GPGen
                         SCC.Add(popped);
                     } 
                     while (popped != node);
-                    handler.AddWarning(String.Format(CultureInfo.InvariantCulture,
+                    handler.AddWarning(150, String.Format(CultureInfo.InvariantCulture,
                         "The following {2} symbols form a non-terminating cycle {0}{{{1}}}",
                         System.Environment.NewLine,
                         ListUtilities.GetStringFromList(SCC),
@@ -402,7 +403,7 @@ namespace QUT.GPGen
             while (changed);
 
             List<NonTerminal> filtered = FilterTerminatingElements(thisTestConfig);
-            handler.AddWarning(String.Format(CultureInfo.InvariantCulture,
+            handler.AddWarning(151, String.Format(CultureInfo.InvariantCulture,
                         "Terminating {0} fixes the following size-{1} NonTerminal set{2}{{{3}}}",
                         root.ToString(),
                         filtered.Count,
@@ -425,13 +426,13 @@ namespace QUT.GPGen
             {
                 nt = pair.Value;
                 if (!nt.reached)
-                    handler.AddWarning(String.Format(CultureInfo.InvariantCulture,
+                    handler.AddWarning(152, String.Format(CultureInfo.InvariantCulture,
                         "NonTerminal symbol \"{0}\" is unreachable", pair.Key), null);
 
                 if (nt.productions.Count == 0)
                 {
                     ok = false;
-                    handler.AddError(String.Format(CultureInfo.InvariantCulture,
+                    handler.AddError(5, String.Format(CultureInfo.InvariantCulture,
                         "NonTerminal symbol \"{0}\" has no productions", pair.Key), null);
                 }
             }
