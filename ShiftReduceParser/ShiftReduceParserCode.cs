@@ -737,7 +737,9 @@ namespace QUT.Gppg
         // since it may be instantiated by a value struct.  If it were 
         // implemented as a property, machine generated code in derived
         // types would not be able to select on the returned value.
+#pragma warning disable 649
         public TValue yylval;                     // Lexical value: set by scanner
+#pragma warning restore 649
 
         /// <summary>
         /// Current scanner location property. The value is of the

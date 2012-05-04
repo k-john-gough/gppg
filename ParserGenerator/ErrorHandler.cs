@@ -17,13 +17,15 @@ namespace QUT.GPGen.Parser
         internal const int minErr = 50;
         internal const int minWrn = 100;
 
+        internal int code;
         internal bool isWarn;
         internal string message;
         internal LexSpan span;
 
 
-        internal Error(string msg, LexSpan spn, bool wrn)
+        internal Error(int code, string msg, LexSpan spn, bool wrn)
         {
+            this.code = code;
             isWarn = wrn;
             message = msg;
             span = spn;
@@ -49,7 +51,10 @@ namespace QUT.GPGen.Parser
         int wrnNum;
 
         LexSpan defaultSpan;
-        internal LexSpan DefaultSpan { set { defaultSpan = value; } }
+        internal LexSpan DefaultSpan { 
+            set { defaultSpan = value; }
+            get { return (defaultSpan != null ? defaultSpan : new LexSpan( 1, 1, 0, 0, 0, 0, null )); }
+        }
 
         internal bool Errors { get { return errNum > 0; } }
         internal bool Warnings { get { return wrnNum > 0; } }
@@ -62,7 +67,7 @@ namespace QUT.GPGen.Parser
         private void AddError(Error e) {
             errors.Add(e);
             if (errors.Count > maxErrors) {
-                errors.Add(new Error("Too many errors, abandoning", e.span, false));
+                errors.Add(new Error(1, "Too many errors, abandoning", e.span, false));
                 throw new TooManyErrorsException("Too many errors");
             }
         }
@@ -77,18 +82,18 @@ namespace QUT.GPGen.Parser
             return errors;
         }
 
-        internal void AddError(string msg, LexSpan spn)
+        internal void AddError(int code, string msg, LexSpan spn)
         {
             if (spn == null)
-                spn = defaultSpan;
-            this.AddError(new Error(msg, spn, false)); errNum++;
+                spn = DefaultSpan;
+            this.AddError(new Error(code, msg, spn, false)); errNum++;
         }
 
-        internal void AddWarning(string msg, LexSpan spn)
+        internal void AddWarning(int code, string msg, LexSpan spn)
         {
             if (spn == null)
-                spn = defaultSpan;
-            this.AddError(new Error(msg, spn, true)); wrnNum++;
+                spn = DefaultSpan;
+            this.AddError(new Error(code, msg, spn, true)); wrnNum++;
         }
 
         /// <summary>
@@ -104,7 +109,7 @@ namespace QUT.GPGen.Parser
         {
             string prefix, suffix, message;
             if (spn == null)
-                spn = defaultSpan;
+                spn = DefaultSpan;
             switch (num)
             {
                 // Syntactic Errors Detected by the Parser ...
@@ -116,7 +121,7 @@ namespace QUT.GPGen.Parser
                     break;
             }
             message = String.Format(CultureInfo.InvariantCulture, "{0} {1}{2}{3} {4}", prefix, lh, key, rh, suffix);
-            this.AddError(new Error(message, spn, num >= Error.minWrn));
+            this.AddError(new Error(num, message, spn, num >= Error.minWrn));
             if (num < Error.minWrn) errNum++; else wrnNum++;
         }
 
@@ -159,7 +164,7 @@ namespace QUT.GPGen.Parser
 
                 default: message = "Error " + Convert.ToString(num, CultureInfo.InvariantCulture); break;
             }
-            this.AddError(new Error(message, spn, num >= Error.minWrn));
+            this.AddError(new Error(num, message, spn, num >= Error.minWrn));
             if (num < Error.minWrn) errNum++; else wrnNum++;
         }
  
@@ -327,7 +332,45 @@ namespace QUT.GPGen.Parser
         //   Console Error Reporting Method
         // -----------------------------------------------------
 
+        internal void DumpErrorsInMsbuildFormat( ScanBuff buff, TextWriter wrtr ) {
+            StringBuilder builder = new StringBuilder();
+            //
+            // Message prefix
+            //
+            string location = (buff != null ? buff.FileName : "GPPG");
+            foreach (Error err in errors) {
+                builder.Length = 0; // Works for V2.0 even.
+                //
+                // Origin
+                //
+                builder.Append( location );
+                if (buff != null) {
+                    builder.Append( '(' );
+                    builder.Append( err.span.startLine );
+                    builder.Append( ',' );
+                    builder.Append( err.span.startColumn );
+                    builder.Append( ')' );
+                }
+                builder.Append( ':' );
+                //
+                // Category                builder.Append( ':' );
+                //
+                builder.Append( err.isWarn ? "warning " : "error " );
+                builder.Append( err.code );
+                builder.Append( ':' );
+                //
+                // Message
+                //
+                builder.Append( err.message );
+                Console.Error.WriteLine( builder.ToString() );
+            }
+        }
+
         internal void DumpAll(ScanBuff buff, TextWriter wrtr) {
+            if (!GPCG.ErrorsToConsole) {
+                DumpErrorsInMsbuildFormat( buff, wrtr );
+                return;
+            }
             if (buff == null) {
                 PanicDump(wrtr); return;
             }

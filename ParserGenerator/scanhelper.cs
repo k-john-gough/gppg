@@ -74,9 +74,9 @@ namespace QUT.GPGen.Lexers
             {
                 LexSpan span = TokenSpan();
                 if (args == null || args.Length == 0)
-                    yyhdlr.AddError(format, span);
+                    yyhdlr.AddError(2, format, span);
                 else
-                    yyhdlr.AddError(String.Format(CultureInfo.InvariantCulture,format, args), span);
+                    yyhdlr.AddError(3, String.Format(CultureInfo.InvariantCulture,format, args), span);
             }
         }
 
