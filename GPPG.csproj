@@ -111,9 +111,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShiftReduceParser\ShiftReduceParserCode.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="ParserGenerator\Thing1.txt" />
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>
     <VisualStudio AllowExistingFolder="true" />
