@@ -224,7 +224,7 @@ namespace QUT.Gppg
                 Console.Error.WriteLine("Entering state {0} ", FsaState.number);
                 DisplayStack();
 #endif
-                int action = FsaState.defaultAction;
+                int action = FsaState.defaultAction; // Error action is default.
 
                 if (FsaState.ParserTable != null)
                 {
@@ -373,7 +373,7 @@ namespace QUT.Gppg
             bool discard;
 
             if (!recovering) // if not recovering from previous error
-                ReportError();
+                ReportSyntaxError();
 
             if (!FindErrorRecoveryState())
                 return false;
@@ -389,26 +389,33 @@ namespace QUT.Gppg
             return discard;
         }
 
-        private void ReportError()
+        private void ReportSyntaxError()
         {
             StringBuilder errorMsg = new StringBuilder();
-            errorMsg.AppendFormat("Syntax error, unexpected {0}", TerminalToString(NextToken));
+            List<object> arguments = new List<object>();
+            bool first = true;
 
-            if (FsaState.ParserTable.Count < 7)
-            {
-                bool first = true;
-                foreach (int terminal in FsaState.ParserTable.Keys)
-                {
-                    if (first)
-                        errorMsg.Append(", expecting ");
-                    else
-                        errorMsg.Append(", or ");
+            errorMsg.Append( "Syntax error, unexpected {0}" );
+            arguments.Add( TerminalToString( NextToken ) );
 
-                    errorMsg.Append(TerminalToString(terminal));
+            foreach (int terminal in FsaState.ParserTable.Keys) {
+                if (first) {
+                    errorMsg.AppendFormat( ", expected {{{0}}}", arguments.Count );
                     first = false;
                 }
+                else {
+                    errorMsg.AppendFormat( ", or {{{0}}}", arguments.Count );
+                }
+                arguments.Add( TerminalToString( terminal ) );
+                //
+                // Limit the length of list ...
+                //
+                if (arguments.Count >= 6) { // terminate with ellipsis ...
+                    errorMsg.AppendFormat( ", ... (more)" );
+                    break;
+                }
             }
-            scanner.yyerror(errorMsg.ToString());
+            scanner.yyerror( errorMsg.ToString(), arguments.ToArray() ); 
         }
 
         private void ShiftErrorToken()

@@ -39,6 +39,7 @@ namespace QUT.GPGen
         internal bool IsPartial;
         internal string OutFileName;
         internal string TokFileName;
+        internal string CsTokFileName;
         internal string DatFileName;
         internal string DiagFileName;
         internal string InputFileIdent;

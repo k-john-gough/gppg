@@ -18,16 +18,19 @@ namespace QUT.GPGen
     {
 		internal Grammar grammar;
 
-        internal void Generate(List<AutomatonState> states, Grammar grammar)
+        public CodeGenerator( Grammar grammar ) { this.grammar = grammar; }
+
+        internal void Generate(List<AutomatonState> states )
         {
             StreamWriter tWrtr = null;
+            StreamWriter cstWrtr = null;
             StreamWriter sWrtr = null;
             StreamWriter cWrtr = null;
             TextWriter   save = Console.Out;
-
-			this.grammar = grammar;
-
-            // did we specify out filename in command line or the file? (command line takes precedence)
+            //
+            // Did we specify output filename in command line or
+            // the file (if both, the command line takes precedence)?
+            //
             string outFile = GPCG.OutFileName;
             if (outFile == null)
               outFile = grammar.OutFileName;
@@ -55,12 +58,26 @@ namespace QUT.GPGen
                 try {
                     FileStream fStrm = new FileStream( grammar.TokFileName, FileMode.Create );
                     tWrtr = new StreamWriter( fStrm );
-                    tWrtr.WriteLine( "// Symbolic tokens for parser for grammar file \"{0}\"", grammar.InputFileIdent );
+                    tWrtr.WriteLine( "// Symbolic tokens for grammar file \"{0}\"", grammar.InputFileIdent );
                 }
                 catch (IOException x) {
                     Console.Error.WriteLine( "GPPG: Error. Failed to create token namelist file" );
                     Console.Error.WriteLine( x.Message );
                     tWrtr = null;
+                }
+            }
+
+            if (grammar.CsTokFileName != null) // generate C# token declaration file
+            {
+                try {
+                    FileStream fStrm = new FileStream( grammar.CsTokFileName, FileMode.Create );
+                    cstWrtr = new StreamWriter( fStrm );
+                    cstWrtr.WriteLine( "// Token declarations  for grammar file \"{0}\"", grammar.InputFileIdent );
+                }
+                catch (IOException x) {
+                    Console.Error.WriteLine( "GPPG: Error. Failed to create C# token declaration file" );
+                    Console.Error.WriteLine( x.Message );
+                    cstWrtr = null;
                 }
             }
 
@@ -112,11 +129,22 @@ namespace QUT.GPGen
                 Console.WriteLine("namespace {0}", grammar.Namespace);
                 Console.WriteLine('{');
             }
-
-            if (!GPCG.ImportedTokens)
-			    GenerateTokens(grammar.terminals, tWrtr);
+            //
+            // Emit token enumeration 
+            //
+            if (!GPCG.ImportedTokens) {
+                if (GPCG.CsTokenFile)
+                    GenerateCsTokenFile( cstWrtr, tWrtr );
+                else
+                    GenerateInlineTokens( grammar.terminals, tWrtr );
+            }
+            //
+            // Report any conflicts
+            //
             grammar.ReportConflicts(cWrtr);
-
+            //
+            // Now emit the parser class.
+            //
             GenerateClassHeader(grammar.ParserName);
             if (grammar.prologCode.Count > 0) {
               Console.WriteLine("  // Verbatim content from {0}", grammar.InputFileIdent);
@@ -126,7 +154,7 @@ namespace QUT.GPGen
               Console.WriteLine();
             }
             GenerateInitializeMethod(states, grammar.productions, grammar.nonTerminals);
-            GenerateActionMethod(grammar.productions);
+            GenerateShiftReduceMachineActions(grammar.productions);
             GenerateToStringMethod();
             InsertCodeSpan(grammar.epilogCode);
             GenerateClassFooter();
@@ -134,10 +162,13 @@ namespace QUT.GPGen
             if (grammar.Namespace != null)
                 Console.WriteLine('}');
 
-            if (tWrtr != null)
-            {
-                tWrtr.WriteLine("// End symbolic tokens for parser");
+            if (tWrtr != null) {
+                tWrtr.WriteLine( "// End symbolic tokens for parser" );
                 tWrtr.Close(); // Close the optional token name stream
+            }
+
+            if (cstWrtr != null) {
+                cstWrtr.Close(); // Close the optional token declaration stream
             }
 
             if (cWrtr != null)
@@ -195,6 +226,7 @@ namespace QUT.GPGen
         {
             Console.WriteLine("using System;");
             Console.WriteLine("using System.Collections.Generic;");
+            Console.WriteLine("using System.CodeDom.Compiler;");
             Console.WriteLine("using System.Globalization;");
             Console.WriteLine("using System.Text;");
             Console.WriteLine("using QUT.Gppg;");
@@ -203,32 +235,59 @@ namespace QUT.GPGen
             Console.WriteLine();
         }
 
-        private void GenerateTokens(Dictionary<string, Terminal> terminals, StreamWriter writer)
-        {
-            Console.Write("{0} enum {1} {{", grammar.Visibility, grammar.TokenName);
+        private void GenerateInlineTokens( Dictionary<string, Terminal> terminals, StreamWriter writer ) {
+            Console.Write( "{0} enum {1} {{", grammar.Visibility, grammar.TokenName );
             bool first = true;
             foreach (Terminal terminal in terminals.Values)
-                if (terminal.symbolic)
-                {
+                if (terminal.symbolic) {
                     if (!first)
-                        Console.Write(",");
-                    if (terminal.num % 6 == 1)
-                    {
+                        Console.Write( "," );
+                    if (terminal.num % 6 == 1) {
                         Console.WriteLine();
-                        Console.Write("    ");
+                        Console.Write( "    " );
                     }
-                    Console.Write("{0}={1}", terminal.EnumName(), terminal.num);
+                    Console.Write( "{0}={1}", terminal.EnumName(), terminal.num );
                     first = false;
-                    if (writer != null) 
-                        writer.WriteLine("\t{0}.{1} /* {2} */", 
-                            grammar.TokenName, terminal.EnumName(), terminal.num);
+                    if (writer != null)
+                        writer.WriteLine( "\t{0}.{1} /* {2} */",
+                            grammar.TokenName, terminal.EnumName(), terminal.num );
                 }
 
-            Console.WriteLine("};");
+            Console.WriteLine( "};" );
             Console.WriteLine();
         }
 
-		private void GenerateValueType()
+        private void GenerateCsTokenFile( StreamWriter csStream, StreamWriter tokStream ) {
+            //
+            if (csStream == null) return;  // ======== Premature method abort. ========
+            //
+            if (grammar.Namespace != null) {
+                csStream.WriteLine( "namespace {0} {{", grammar.Namespace );
+            }
+            csStream.Write( "    {0} enum {1} {{", grammar.Visibility, grammar.TokenName );
+            bool first = true;
+            foreach (Terminal terminal in grammar.terminals.Values)
+                if (terminal.symbolic) {
+                    if (!first)
+                        csStream.Write( "," );
+                    if (terminal.num % 6 == 1) {
+                        csStream.WriteLine();
+                        csStream.Write( "        " );
+                    }
+                    csStream.Write( "{0}={1}", terminal.EnumName(), terminal.num );
+                    first = false;
+                    if (tokStream != null)
+                        tokStream.WriteLine( "\t{0}.{1} /* {2} */",
+                            grammar.TokenName, terminal.EnumName(), terminal.num );
+                }
+            csStream.WriteLine( "    };" );
+            if (grammar.Namespace != null) {
+                csStream.WriteLine( '}' );
+            }
+            csStream.WriteLine();
+        }
+
+        private void GenerateValueType()
 		{
 			if (grammar.unionType != null)
 			{
@@ -244,8 +303,14 @@ namespace QUT.GPGen
             // else we have a value type name declared, but no "union"
 		}
 
+        private static void GeneratedCodeAttribute() {
+            Console.WriteLine( 
+                "[GeneratedCodeAttribute( \"Gardens Point Parser Generator\", \"{0}\")]", GPCG.versionInfo );
+        }
+
         private void GenerateScannerBaseClass() {
             Console.WriteLine( "// Abstract base class for GPLEX scanners" );
+            GeneratedCodeAttribute();
             Console.WriteLine( "{0} abstract class {1} : AbstractScanner<{2},{3}> {{",
                 grammar.Visibility, grammar.ScanBaseName, grammar.ValueTypeName, grammar.LocationTypeName );
             Console.WriteLine( "  private {0} __yylloc = new {0}();", grammar.LocationTypeName );
@@ -273,6 +338,7 @@ namespace QUT.GPGen
 
         private void GenerateScanObjClass() {
             Console.WriteLine( "// Utility class for encapsulating token information" );
+            GeneratedCodeAttribute();
             Console.WriteLine( "{0} class ScanObj {{", grammar.Visibility );
             Console.WriteLine( "  public int token;" );
             Console.WriteLine( "  public {0} yylval;", grammar.ValueTypeName );
@@ -291,7 +357,8 @@ namespace QUT.GPGen
                 GenerateScannerBaseClass();
                 GenerateScanObjClass();
             }
-            Console.WriteLine("{2}{3} class {0}: ShiftReduceParser<{1}, {4}>", 
+            GeneratedCodeAttribute();
+            Console.WriteLine( "{2}{3} class {0}: ShiftReduceParser<{1}, {4}>", 
                 name, grammar.ValueTypeName, grammar.Visibility, grammar.PartialMark, grammar.LocationTypeName);
             Console.WriteLine('{');
         }
@@ -334,14 +401,14 @@ namespace QUT.GPGen
             Console.WriteLine("  static {0}() {{", grammar.ParserName);
             int state_nr = 0;
             foreach (AutomatonState state in states)
-              GenerateStateElement(state_nr++, state);
+              GenerateShiftReduceMachineState(state_nr++, state);
             Console.WriteLine();
 
             Console.WriteLine("    for (int sNo = 0; sNo < states.Length; sNo++) states[sNo].number = sNo;");
 
             Console.WriteLine();
             foreach (Production production in productions)
-              GenerateRule(production);
+              GenerateShiftReduceMachineRule(production);
 
             List<Terminal> aliasList = new List<Terminal>();
             foreach (KeyValuePair<string, Terminal> pair in grammar.terminals) {
@@ -371,93 +438,100 @@ namespace QUT.GPGen
         }
 
 
-        private static void GenerateStateElement(int stateNumber, AutomatonState state) {
-          Console.Write("    states[{0}] = new State(", stateNumber);
+        private static void GenerateShiftReduceMachineState( int stateNumber, AutomatonState state ) {
+            Console.Write( "    states[{0}] = new State(", stateNumber );
 
-          int defaultAction = GetDefaultAction(state);
-          if (defaultAction != 0)
-            Console.Write(defaultAction);
-          else {
-            Console.Write("new int[]{");
-            bool first = true;
-            foreach (KeyValuePair<Terminal, ParserAction> transition in state.parseTable) {
-              if (!first)
-                Console.Write(",");
-              Console.Write("{0},{1}", transition.Key.num, transition.Value.ToNum());
-              first = false;
+            int defaultAction = GetDefaultAction( state );
+            if (defaultAction != 0)
+                //
+                //  Having a default action happens if the LR0 machine
+                //  has a Reduce action, that is, no lookahead is needed.
+                //
+                Console.Write( defaultAction );
+            else {
+                // 
+                //  Otherwise, we have an action that depends on the
+                //  lookahead, determined by the LALR(1) automaton.
+                //
+                Console.Write( "new int[]{" );
+                bool first = true;
+                foreach (KeyValuePair<Terminal, ParserAction> transition in state.parseTable) {
+                    if (!first)
+                        Console.Write( "," );
+                    Console.Write( "{0},{1}", transition.Key.num, transition.Value.ToNum() );
+                    first = false;
+                }
+                Console.Write( '}' );
             }
-            Console.Write('}');
-          }
-
-          if (state.nonTerminalTransitions.Count > 0) {
-            Console.Write(",new int[]{");
-            bool first = true;
-            foreach (Transition transition in state.nonTerminalTransitions.Values) {
-              if (!first)
-                Console.Write(",");
-              Console.Write("{0},{1}", transition.A.num, transition.next.num);
-              first = false;
+            if (state.nonTerminalTransitions.Count > 0) {
+                //
+                // The Goto table is needed if there are non-terminal transitions.
+                //
+                Console.Write( ",new int[]{" );
+                bool first = true;
+                foreach (Transition transition in state.nonTerminalTransitions.Values) {
+                    if (!first)
+                        Console.Write( "," );
+                    Console.Write( "{0},{1}", transition.A.num, transition.next.num );
+                    first = false;
+                }
+                Console.Write( '}' );
             }
-            Console.Write('}');
-          }
-          Console.WriteLine(");");
+            Console.WriteLine( ");" );
         }
 
-		private static int GetDefaultAction(AutomatonState state)
-        {
-			IEnumerator<ParserAction> enumerator = state.parseTable.Values.GetEnumerator();
-			enumerator.MoveNext();
-			int defaultAction = enumerator.Current.ToNum();
+        private static int GetDefaultAction( AutomatonState state ) {
+            if (state.ForceLookahead) {
+                return 0;
+            }
+            IEnumerator<ParserAction> enumerator = state.parseTable.Values.GetEnumerator();
+            enumerator.MoveNext();
+            int defaultAction = enumerator.Current.ToNum();
 
-			if (defaultAction > 0) 
-				return 0; // can't have default shift action
+            if (defaultAction > 0)
+                return 0; // can't have default shift action
 
-			foreach (KeyValuePair<Terminal, ParserAction> transition in state.parseTable)
-				if (transition.Value.ToNum() != defaultAction)
-					return 0;
+            foreach (KeyValuePair<Terminal, ParserAction> transition in state.parseTable)
+                if (transition.Value.ToNum() != defaultAction)
+                    return 0;
 
-			return defaultAction;
+            return defaultAction;
         }
 
 
-        private static void GenerateRule(Production production)
-        {
-            Console.Write("    rules[{0}] = new Rule({1}, new int[]{{", production.num, production.lhs.num);
-			bool first = true;
-			foreach (Symbol sym in production.rhs)
-			{
-				if (!first)
-					Console.Write(",");
-				else
-					first = false;
-				Console.Write("{0}", sym.num);
-			}
-			Console.WriteLine("});");
+        private static void GenerateShiftReduceMachineRule( Production production ) {
+            Console.Write( "    rules[{0}] = new Rule({1}, new int[]{{", production.num, production.lhs.num );
+            bool first = true;
+            foreach (Symbol sym in production.rhs) {
+                if (!first)
+                    Console.Write( "," );
+                else
+                    first = false;
+                Console.Write( "{0}", sym.num );
+            }
+            Console.WriteLine( "});" );
         }
-        
 
-        private void GenerateActionMethod(List<Production> productions)
-        {
-            Console.WriteLine("  protected override void DoAction(int action)");
-            Console.WriteLine("  {");
+
+        private void GenerateShiftReduceMachineActions( List<Production> productions ) {
+            Console.WriteLine( "  protected override void DoAction(int action)" );
+            Console.WriteLine( "  {" );
             // warning 162 : unreachable code; 1522 empty switch block
             Console.WriteLine( "#pragma warning disable 162, 1522" );
-            Console.WriteLine("    switch (action)");
-            Console.WriteLine("    {");
-            foreach(Production production in productions)
-            {
-				if (production.semanticAction != null)
-                {
-                    string prefix = String.Format(CultureInfo.InvariantCulture, "      case {0}: ", production.num); 
-                    Console.WriteLine("{0}// {1}", prefix, 
-                        StringUtilities.MakeComment(prefix.Length, production.ToString()));
-					production.semanticAction.GenerateCode(this);
-                    Console.WriteLine("        break;");
+            Console.WriteLine( "    switch (action)" );
+            Console.WriteLine( "    {" );
+            foreach (Production production in productions) {
+                if (production.semanticAction != null) {
+                    string prefix = String.Format( CultureInfo.InvariantCulture, "      case {0}: ", production.num );
+                    Console.WriteLine( "{0}// {1}", prefix,
+                        StringUtilities.MakeComment( prefix.Length, production.ToString() ) );
+                    production.semanticAction.GenerateCode( this );
+                    Console.WriteLine( "        break;" );
                 }
             }
-            Console.WriteLine("    }");
+            Console.WriteLine( "    }" );
             Console.WriteLine( "#pragma warning restore 162, 1522" );
-            Console.WriteLine("  }");
+            Console.WriteLine( "  }" );
             Console.WriteLine();
         }
 
@@ -477,26 +551,22 @@ namespace QUT.GPGen
             Console.WriteLine();
         }
 
-        private void InsertCodeSpan(LexSpan span)
-        {
-            if (span != null)
-            {
-                int lNum = span.startLine;
+        // Modified code contributed by Emmo Emminghaus.
+        private void InsertCodeSpan( LexSpan span ) {
+            if (span != null) {
                 string code = span.ToString();
-                string format = null;
-                if (GPCG.Lines)
-                  format = String.Format(CultureInfo.InvariantCulture, "#line {{0}} \"{0}\"", GPCG.LinesFilename ?? grammar.InputFilename);
-
-                StringReader reader = new StringReader(code);
-                while (true)
-                {
-                    string line = reader.ReadLine();
-                    if (line == null)
-                        break;
-                    if (format != null)
-                        Console.WriteLine(format, lNum++);
-                    Console.WriteLine(line);
+                if (GPCG.Lines) {
+                    Console.WriteLine( "#line {0} \"{1}\"", span.startLine, GPCG.LinesFilename ?? grammar.InputFilename );
+                    for (int i = 0; i < span.startColumn; i++)
+                        Console.Write( " " );
                 }
+                StringReader reader = new StringReader( code );
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                    Console.WriteLine( line );
+
+                if (GPCG.Lines)
+                    Console.WriteLine( "#line default" );
             }
         }
     }

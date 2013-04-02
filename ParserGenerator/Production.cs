@@ -26,6 +26,18 @@ namespace QUT.GPGen
 			lhs.productions.Add(this);
 		}
 
+        /// <summary>
+        /// For this Production, return the rightmost Terminal, if any.
+        /// </summary>
+        /// <returns>Rightmost Terminal, or null</returns>
+        internal Terminal RightmostTerminal() {
+            Terminal result = null;
+            for (int i = this.rhs.Count - 1; i >= 0; i--)
+                if ((result = this.rhs[i] as Terminal) != null)
+                    break;
+            return result;
+        }
+
 
 		public override string ToString()
 		{

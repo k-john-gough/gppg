@@ -24,6 +24,7 @@ namespace QUT.GPGen {
         public static bool Lines = true;
         public static bool Report;
         public static bool Defines;
+        public static bool CsTokenFile;
         public static bool ShareTokens;
         public static bool ImportedTokens;
         public static bool ForGplex;
@@ -102,8 +103,8 @@ namespace QUT.GPGen {
                     // create a diagnostic report as the grammar is incomplete.
                     //
                     if (!handler.Errors) {
-                        CodeGenerator code = new CodeGenerator();
-                        code.Generate( states, grammar );
+                        CodeGenerator emitter = new CodeGenerator( grammar );
+                        emitter.Generate( states );
                     }
 
                     bool DoDiagnose = Diagnose && !grammar.HasNonTerminatingNonTerms;
@@ -209,6 +210,9 @@ namespace QUT.GPGen {
                         case "DEFINES":
                             Defines = true;
                             break;
+                        case "CSTOKENFILE":
+                            CsTokenFile = true;
+                            break;
                         case "ERRORSTOCONSOLE":
                             ErrorsToConsole = true;
                             break;
@@ -276,6 +280,7 @@ namespace QUT.GPGen {
             Console.WriteLine();
             Console.WriteLine( "/babel          Generate class compatible with Managed Babel" );
             Console.WriteLine( "/conflicts      Emit \"conflicts\" file with full conflict details" );
+            Console.WriteLine( "/csTokenFile    Emit tokens to separate C# file {basename}Tokens.cs" );
             Console.WriteLine( "/defines        Emit \"tokens\" file with token name list" );
             Console.WriteLine( "/errorsToConsole  Produce legacy console messages (not MSBUILD friendly)" );
             Console.WriteLine( "/gplex          Generate scanner base class for GPLEX" );

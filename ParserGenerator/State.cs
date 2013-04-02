@@ -28,6 +28,18 @@ namespace QUT.GPGen
         internal List<AutomatonState> predecessors;
         internal List<Conflict> conflicts;
 
+        bool forceLookahead; 
+        /// <summary>
+        /// If this boolean is set, the emitted parser file will not use a
+        /// default action.  This is necessary to ensure that violations of
+        /// the use of a %nonassoc token are detected as errors even if the 
+        /// state would othewise have a default action.
+        /// </summary>
+        public bool ForceLookahead {
+            get { return forceLookahead; }
+            set { forceLookahead = value; }
+        }
+
 		internal AutomatonState(Production production)
 		{
 			num = TotalStates++;

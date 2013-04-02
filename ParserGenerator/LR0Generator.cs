@@ -100,8 +100,12 @@ namespace QUT.GPGen
 		internal void BuildParseTable()
 		{
 			foreach (AutomatonState state in states)
-			{
+			{   //
 				// Add shift actions ...
+                // This makes shift the default action for all
+                // terminal transitions. This is modified as required,
+                // later in this foreach state loop.
+                //
 				foreach (Terminal t in state.terminalTransitions)
 					state.parseTable[t] = new Shift(state.Goto[t]);
 
@@ -149,22 +153,41 @@ namespace QUT.GPGen
                                 }
 								else
 								{
-                                    if (iProd.prec != null && t.prec != null)
-                                    {
-                                        if (iProd.prec.prec > t.prec.prec ||
-                                            (iProd.prec.prec == t.prec.prec &&
-                                             iProd.prec.type == PrecType.left))
-                                        {
-                                            // resolve in favour of reduce (without error)
-                                            state.parseTable[t] = new Reduce(item);
+                                    if (iProd.prec != null && t.prec != null) {
+                                        if (iProd.prec.prec > t.prec.prec) {
+                                            //
+                                            //  Production iProd has precedence over t, so Reduce.
+                                            //
+                                            state.parseTable[t] = new Reduce( item ); // No shift/Reduce warning.
                                         }
-                                        else
-                                        {
-                                            // resolve in favour of shift (without error)
+                                        else if (iProd.prec.prec == t.prec.prec) {
+                                            //
+                                            //  Precedence is equal, so use associativity to decide.
+                                            //
+                                            if (t.prec.type == PrecType.left) {
+                                                //
+                                                // For %left tokens reduce the left subexpression.
+                                                //
+                                                state.parseTable[t] = new Reduce( item );
+                                            }
+                                            else if (t.prec.type == PrecType.nonassoc) { // && iProd.RightmostTerminal() == t) {
+                                                // What is the correct semantics here?
+                                                // If %nonassoc x y, is E x E y E an error?
+                                                // The YACC spec seems to imply, but not explictly state,
+                                                // that x,y are non-associative AS A GROUP
+                                                // rather than just individually non-associative.
+                                                //
+                                                // For %nonassoc tokens disallow the shift action, and force
+                                                // lookahead just in case this state has an LR0 Reduce action.
+                                                //
+                                                state.parseTable.Remove( t );
+                                                state.ForceLookahead = true;
+                                            }
+                                            // else t.prec.type == PrecType.right, so Shift.
                                         }
+                                        // else iProd.prec.prec < t.proc.prec, so Shift anyway.
                                     }
-                                    else
-                                    {
+                                    else {  // Need to issue a Shift/Reduce warning message.
                                         AutomatonState next = ((Shift)other).next;
                                         string p1 = String.Format(CultureInfo.InvariantCulture, " Shift \"{0}\":\tState-{1} -> State-{2}", t, state.num, next.num);
                                         string p2 = String.Format(CultureInfo.InvariantCulture, " Reduce {0}:\t{1}", iProd.num, iProd.ToString());
@@ -178,7 +201,6 @@ namespace QUT.GPGen
                                         else
                                             Console.Error.WriteLine("Shift/Reduce conflict, state {0} on {1}", state.num, t);
                                     }
-									// choose in favour of the shift
 								}
 							}
 							else

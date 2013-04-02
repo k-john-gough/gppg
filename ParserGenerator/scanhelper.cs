@@ -34,6 +34,8 @@ namespace QUT.GPGen.Lexers
                     return Token.kwUnion;
                 case "defines":
                     return Token.kwDefines;
+                case "cstokenfile":
+                    return Token.kwCsTokenFile;
                 case "locations":
                     return Token.kwLocations;
                 case "namespace":
