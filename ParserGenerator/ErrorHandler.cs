@@ -156,6 +156,7 @@ namespace QUT.GPGen.Parser
                 case 79: message = "Cannot define tokens AND declare %importtokens"; break;
                 case 80: message = "Cannot declare %sharetokens AND %importtokens"; break;
                 case 81: message = "Cannot declare %importtokens AND extra tokens"; break;
+                case 82: message = "Cannot declare %importtokens AND csTokenFile"; break;
 
                 // Warnings Issued by Either Scanner or Parser ...
                 case 100: message = "Optional numeric code ignored in this version"; break;

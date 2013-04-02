@@ -22,18 +22,16 @@ namespace QUT.GPGen
 			this.prec = prec;
 		}
 
-		internal static void Calculate(Production p)
-		{
+		internal static void Calculate(Production p) {
+            //
 			// Precedence of a production is that of its rightmost terminal
 			// unless explicitly labelled with %prec
-
-			if (p.prec == null)
-				for (int i = p.rhs.Count - 1; i >= 0; i--)
-					if (p.rhs[i] is Terminal)
-					{
-						p.prec = ((Terminal)p.rhs[i]).prec;
-						break;
-					}
+            //
+            if (p.prec == null) {
+                Terminal last = p.RightmostTerminal();
+                if (last != null)
+                    p.prec = last.prec;
+            }
 		}
 	}
 }

@@ -126,8 +126,11 @@ namespace QUT.GPGen.Parser
             if (GPCG.Defines) {
                 grammar.TokFileName = baseName + ".tokens";
             }
+            if (GPCG.CsTokenFile) {
+                grammar.CsTokFileName = baseName + "Tokens.cs";
+            }
             if (GPCG.ShareTokens) {
-                grammar.DatFileName = baseName + ".dat";
+                grammar.DatFileName = baseName + "Tokens.dat";
             }
             if (GPCG.Conflicts) grammar.DiagFileName = baseName + ".conflicts";
             // If both %union AND %YYSTYPE have been set, YYSTYPE must be
@@ -146,6 +149,9 @@ namespace QUT.GPGen.Parser
                     handler.ListError( def, 79 );
                 if (GPCG.ShareTokens)
                     handler.ListError( def, 80 );
+                if (GPCG.CsTokenFile)
+                    handler.ListError( def, 82 );
+
                 FileStream fStrm = null;
                 try {
                     fStrm = new FileStream( grammar.DatFileName, FileMode.Open );
