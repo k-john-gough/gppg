@@ -224,7 +224,7 @@ namespace QUT.Gppg
                 Console.Error.WriteLine("Entering state {0} ", FsaState.number);
                 DisplayStack();
 #endif
-                int action = FsaState.defaultAction; // Error action is default.
+                int action = FsaState.defaultAction;
 
                 if (FsaState.ParserTable != null)
                 {
@@ -334,7 +334,7 @@ namespace QUT.Gppg
                 else
                 {
                     // Default action: $$ = $1;
-                    CurrentSemanticValue = valueStack.TopElement();
+                    CurrentSemanticValue = valueStack[LocationStack.Depth - rule.RightHandSide.Length];
                     //  Default action "@$ = @1.Merge(@N)" for location info.
                     TSpan at1 = LocationStack[LocationStack.Depth - rule.RightHandSide.Length];
                     TSpan atN = LocationStack[LocationStack.Depth - 1];
@@ -373,7 +373,7 @@ namespace QUT.Gppg
             bool discard;
 
             if (!recovering) // if not recovering from previous error
-                ReportSyntaxError();
+                ReportError();
 
             if (!FindErrorRecoveryState())
                 return false;
@@ -389,33 +389,26 @@ namespace QUT.Gppg
             return discard;
         }
 
-        private void ReportSyntaxError()
+        private void ReportError()
         {
             StringBuilder errorMsg = new StringBuilder();
-            List<object> arguments = new List<object>();
-            bool first = true;
+            errorMsg.AppendFormat("Syntax error, unexpected {0}", TerminalToString(NextToken));
 
-            errorMsg.Append( "Syntax error, unexpected {0}" );
-            arguments.Add( TerminalToString( NextToken ) );
+            if (FsaState.ParserTable.Count < 7)
+            {
+                bool first = true;
+                foreach (int terminal in FsaState.ParserTable.Keys)
+                {
+                    if (first)
+                        errorMsg.Append(", expecting ");
+                    else
+                        errorMsg.Append(", or ");
 
-            foreach (int terminal in FsaState.ParserTable.Keys) {
-                if (first) {
-                    errorMsg.AppendFormat( ", expected {{{0}}}", arguments.Count );
+                    errorMsg.Append(TerminalToString(terminal));
                     first = false;
                 }
-                else {
-                    errorMsg.AppendFormat( ", or {{{0}}}", arguments.Count );
-                }
-                arguments.Add( TerminalToString( terminal ) );
-                //
-                // Limit the length of list ...
-                //
-                if (arguments.Count >= 6) { // terminate with ellipsis ...
-                    errorMsg.AppendFormat( ", ... (more)" );
-                    break;
-                }
             }
-            scanner.yyerror( errorMsg.ToString(), arguments.ToArray() ); 
+            scanner.yyerror(errorMsg.ToString());
         }
 
         private void ShiftErrorToken()
