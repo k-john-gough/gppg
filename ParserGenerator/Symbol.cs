@@ -101,6 +101,10 @@ namespace QUT.GPGen
                 return base.ToString();
         }
 
+        public string BaseString() {
+            return base.ToString();
+        }
+
         internal static void InsertMaxDummyTerminalInDictionary( Dictionary<string, Terminal> table ) {
             Terminal maxTerm = null;
             if (Terminal.Max != 0) {
