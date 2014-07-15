@@ -115,6 +115,7 @@ namespace QUT.GPGen.Parser
                 // Syntactic Errors Detected by the Parser ...
                 case 70: prefix = "Invalid string escape"; suffix = ""; break;
                 case 82: prefix = "Character literal"; suffix = "exceeds maximum in imported token type"; break;
+                case 83: prefix = "Key"; suffix = "was not found in token alias list"; break;
                 case 103: prefix = "Highest char literal token"; suffix = "is very large"; break;
 
                 default: prefix = "Error " + Convert.ToString(num, CultureInfo.InvariantCulture); suffix = "";

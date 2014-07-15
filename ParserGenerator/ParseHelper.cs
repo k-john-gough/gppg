@@ -19,7 +19,7 @@ namespace QUT.GPGen.Parser
     {
         internal ErrorHandler handler;
 
-        private Grammar grammar = new Grammar();
+        private Grammar grammar;
         internal Grammar Grammar { get { return grammar; } }
 
         private string baseName;
@@ -38,8 +38,9 @@ namespace QUT.GPGen.Parser
             this.handler = handler;
             this.sourceFileInfo = fileinfo;
             this.baseName = System.IO.Path.GetFileNameWithoutExtension(filename);
-            grammar.InputFileIdent = fileinfo;
-            grammar.InputFilename = filename;
+            this.grammar = new Grammar( handler );
+            this.grammar.InputFileIdent = fileinfo;
+            this.grammar.InputFilename = filename;
         }
 
         // ===============================================================
@@ -72,7 +73,7 @@ namespace QUT.GPGen.Parser
                 handler.ListError( span1, 81 );
             foreach (TokenInfo info in list) {
                 Token token = (IsLitChar(info.name) ? Token.litchar : Token.ident);
-                Terminal t = grammar.LookupOrDefineTerminal(token, info.name, info.alias);
+                Terminal t = grammar.LookupOrDefineTerminal(token, info.name, info.alias, span1);
                 if (prop != PrecType.token)
                     t.prec = new Precedence(prop, grammar.Prec);
                 if (!String.IsNullOrEmpty(kind))
@@ -208,39 +209,39 @@ namespace QUT.GPGen.Parser
             return rslt;
         }
 
-        private void AddSymbolsToProduction(Production prod, List<string> list)
-        {
+        private void AddSymbolsToProduction( Production prod, List<string> list ) {
             // Version 1.3.1 sends even empty lists to this method.
             // Furthermore, version 1.3.1 no longer explicitly calls
             // FixInternalReduction().  It is easier to adopt a consistent
             // approach and let AddXxxToProd check for a trailing action
             // prior to adding symbols or a new action.
             //
-            if (list != null) 
-            {
+            if (list != null) {
                 if (prod.semanticAction != null || prod.precSpan != null)
-                    FixInternalReduction(prod);
-                foreach (string str in list)
-                {
+                    FixInternalReduction( prod );
+                foreach (string str in list) {
                     Symbol symbol = null;
-                    switch (TokenOf(str))
-                    {
+
+                    switch (TokenOf( str )) {
                         case Token.litchar:
                             if (GPCG.ImportedTokens && Terminal.BumpsMax( str ))
-                                handler.ListError( this.CurrentLocationSpan, 82, str, '\0' );                                
-                            symbol = grammar.LookupTerminal(Token.litchar, str);
+                                handler.ListError( this.CurrentLocationSpan, 82, str, '\0' );
+                            symbol = grammar.LookupTerminal( Token.litchar, str );
                             break;
                         case Token.litstring:
-                            symbol = grammar.aliasTerms[str];
+                            if (!grammar.aliasTerms.ContainsKey( str ))
+                                handler.ListError( this.CurrentLocationSpan, 83, str, '\0' );
+                            else
+                                symbol = grammar.aliasTerms[str];
                             break;
                         case Token.ident:
-                            if (grammar.terminals.ContainsKey(str))
+                            if (grammar.terminals.ContainsKey( str ))
                                 symbol = grammar.terminals[str];
                             else
-                                symbol = grammar.LookupNonTerminal(str);
+                                symbol = grammar.LookupNonTerminal( str );
                             break;
                     }
-                    prod.rhs.Add(symbol);;
+                    prod.rhs.Add( symbol );
                 }
             }
         }

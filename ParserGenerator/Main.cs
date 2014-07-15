@@ -86,7 +86,7 @@ namespace QUT.GPGen {
                 // If the parse is successful, then process the grammar.
                 // Otherwise just report the errors that have been listed.
                 //
-                if (parser.Parse()) {
+                if ( parser.Parse() && !handler.Errors ) {
                     grammar = parser.Grammar;
 
                     if (Terminal.Max > 255)
@@ -96,7 +96,7 @@ namespace QUT.GPGen {
                     List<AutomatonState> states = generator.BuildStates();
                     generator.ComputeLookAhead();
                     generator.BuildParseTable();
-                    if (!grammar.CheckGrammar( handler ))
+                    if (!grammar.CheckGrammar())
                         throw new ArgumentException( "Non-terminating grammar" );
                     //
                     // If the grammar has non-terminating non-terms we cannot

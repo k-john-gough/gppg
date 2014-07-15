@@ -62,8 +62,9 @@ namespace QUT.GPGen
         }
         // end
 
-        internal Grammar()
+        internal Grammar( ErrorHandler handler )
         {
+            this.handler = handler;
 			LookupTerminal(Token.ident, "error");
 			LookupTerminal(Token.ident, "EOF");
         }
@@ -81,22 +82,63 @@ namespace QUT.GPGen
             return terminals[name];
         }
 
-        internal Terminal LookupOrDefineTerminal(Token token, string name, string alias)
+
+        internal Terminal LookupOrDefineTerminal(Token token, string name, string alias, LexSpan span )
         {
             bool isIdent = (token == Token.ident);
+            Terminal result = null;
             // Canonicalize escaped char-literals
             if (!isIdent)
                 name = CharacterUtilities.Canonicalize(name, 1);
             // Check if already present in dictionary
-            if (!terminals.ContainsKey(name))  {  // else insert ...
-                Terminal newTerm = new Terminal(isIdent, name, alias);
-                terminals[name] = newTerm;
-                if (alias != null)
-                    aliasTerms[alias] = newTerm;
+            if (!terminals.ContainsKey( name )) {  // terminal already known
+                result = new Terminal( isIdent, name, alias );
+                terminals[name] = result;
+                if (alias != null) CheckAndSetAlias( alias, result, span );
             }
-            return terminals[name];
+            else {
+                result = terminals[name];
+                if (alias != null)  CheckAlias( alias, result, span );
+            }
+            return result; 
         }
 
+        private void CheckAndSetAlias( string alias, Terminal terminal, LexSpan span ) {
+            //
+            // Terminal not known in collection
+            //
+            if (aliasTerms.ContainsKey( alias )) {
+                //
+                // It is an error if an alias denotes more than one logical token
+                //
+                Terminal other = aliasTerms[alias];
+                if (other != terminal)
+                    handler.AddError( 83,
+                            String.Format( CultureInfo.InvariantCulture,
+                            "Alias {0} already used for token {1}",
+                            alias, other.ToString() ), span );
+            }
+            else {
+                aliasTerms[alias] = terminal;
+            }
+                
+        }
+
+        private void CheckAlias( string alias, Terminal terminal, LexSpan span ) {
+            //
+            // Terminal already known in collection
+            //
+            String oldAlias = terminal.Alias;
+            handler.AddWarning( 153,
+                String.Format( CultureInfo.InvariantCulture,
+                (oldAlias == null ? 
+                    "Token {0} already declared, without alias {1}" :
+                    (oldAlias.Equals( alias ) ?
+                        "Token {0} already declared, with same alias {1}" :
+                        "Declaring an additional alias, {1}, for token {0}")
+                    ), terminal.BaseString(), alias ), span );
+            aliasTerms[alias] = terminal;
+        }
 
 		internal NonTerminal LookupNonTerminal(string name) {
 			if (!nonTerminals.ContainsKey(name))
@@ -416,11 +458,10 @@ namespace QUT.GPGen
         #endregion Terminating Computation
         // =============================================================================
 
-        internal bool CheckGrammar(ErrorHandler handler)
+        internal bool CheckGrammar()
         {
             bool ok = true;
             NonTerminal nt;
-            this.handler = handler;
             MarkReachable();
             MarkTerminating();
             foreach (KeyValuePair<string, NonTerminal> pair in nonTerminals)
