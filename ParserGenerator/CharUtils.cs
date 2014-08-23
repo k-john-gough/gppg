@@ -7,6 +7,7 @@
 //
 
 using System;
+using System.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Globalization;
@@ -172,7 +173,7 @@ namespace QUT.GPGen
         /// <param name="str">The string representation</param>
         /// <param name="startIndex">start index of character</param>
         /// <returns>canonical representation of character</returns>
-        public static string Canonicalize(string source, int startIndex)
+        public static string CanonicalizeCharacterLiteral(string source, int startIndex)
         {
             char chr0 = source[startIndex++];
             if (chr0 != '\\')
@@ -297,7 +298,7 @@ namespace QUT.GPGen
         /// </summary>
         /// <param name="code">the codepoint to encode</param>
         /// <returns>the string denoting chr</returns>
-        public static string Map(int code)
+        public static string MapCodepointToDisplayForm(int code)
         {
             if (code > (int)' ' && code < 127 && code != '\\') return new String((char)code, 1);
             switch (code)
@@ -317,37 +318,69 @@ namespace QUT.GPGen
             }
         }
 
-        /// <summary>
-        /// Map string characters into the display form 
-        /// </summary>
-        /// <param name="code">the codepoint to encode</param>
-        /// <returns>the string denoting chr</returns>
-        private static string StrMap(int code)
-        {
-            if (code == '"') return "\\\"";
-            else return Map(code);
-        }
-
         public static string QuoteMap(int code)
         {
-            return String.Format(CultureInfo.InvariantCulture, "'{0}'", Map(code));
+            return String.Format(CultureInfo.InvariantCulture, "'{0}'", MapCodepointToDisplayForm(code)); 
+            // No ambiguating context possible here since result is delimited by quotes
         }
 
-        public static string QuoteMap(string source)
+        /// <summary>
+        /// Return a canonicalized version of source string, surrounded by string-quotes.
+        /// </summary>
+        /// <param name="source">the string to canonicalize</param>
+        /// <returns>the quoted, canonicalized string</returns>
+        public static string QuoteAndCanonicalize(string source)
         {
-            return String.Format(CultureInfo.InvariantCulture, "\"{0}\"", Map(source));
+            return String.Format(CultureInfo.InvariantCulture, "\"{0}\"", MapString(source));
         }
-
-        public static string Map(string source)
+        /// <summary>
+        /// Map the source string to the escaped display form.
+        /// The semantics differs from MapCodepointToDisplayForm in
+        /// that two-digit escapes are not used if the following character
+        /// is a valid hexadecimal digit.
+        /// </summary>
+        /// <param name="source">the string to convert</param>
+        /// <returns>the converted string</returns>
+        public static string MapString(string source)
         {
-            string rslt = "";
+            StringBuilder rslt = new StringBuilder();
             if (source != null)
             {
                 int index = 0;
-                for (int point; (point = CodePoint(source, ref index)) != -1; )
-                    rslt += StrMap(point);
+                for (int code; (code = CodePoint( source, ref index )) != -1; ) {
+                    string suffix;
+                    if (code == '"')
+                        rslt.Append( "\\\"" );
+                    else if (code > (int)' ' && code < 127 && code != '\\') 
+                        rslt.Append( (char)code );
+                    else {
+                        switch (code) {
+                            case (int)'\n': suffix = "\\n";  break;
+                            case (int)'\t': suffix = "\\t";  break;
+                            case (int)'\r': suffix = "\\r";  break;
+                            case (int)'\\': suffix = "\\\\"; break;
+                            default:
+                                if (code < 256) {
+                                    // Escape sequences are ambiguous if followed by a hexadecimal character
+                                    char follow = source[index];
+                                    if (IsHexDigit( follow ))
+                                        suffix = String.Format( CultureInfo.InvariantCulture, "\\u{0:X4}", (ushort)code );
+                                    else if (code == '\0')
+                                        suffix = "\\0";
+                                    else
+                                        suffix = String.Format( CultureInfo.InvariantCulture, "\\x{0:X2}", code );
+                                }
+                                else if (code <= UInt16.MaxValue) // use unicode literal
+                                    suffix = String.Format( CultureInfo.InvariantCulture, "\\u{0:X4}", (ushort)code );
+                                else
+                                    suffix = String.Format( CultureInfo.InvariantCulture, "\\U{0:X8}", code );
+                                break;
+                        }
+                        rslt.Append( suffix );
+                    }
+                }
             }
-            return rslt;
+            return rslt.ToString();
         }
 
         /// <summary>

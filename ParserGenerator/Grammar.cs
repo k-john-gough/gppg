@@ -75,7 +75,7 @@ namespace QUT.GPGen
             bool isIdent = (token == Token.ident);
             // Canonicalize escaped char-literals
             if (!isIdent)
-                name = CharacterUtilities.Canonicalize( name, 1 );
+                name = CharacterUtilities.CanonicalizeCharacterLiteral( name, 1 );
             // Check if already present in dictionary
             if (!terminals.ContainsKey(name))  // else insert ...
                 terminals[name] = new Terminal( isIdent, name );
@@ -89,7 +89,7 @@ namespace QUT.GPGen
             Terminal result = null;
             // Canonicalize escaped char-literals
             if (!isIdent)
-                name = CharacterUtilities.Canonicalize(name, 1);
+                name = CharacterUtilities.CanonicalizeCharacterLiteral(name, 1);
             // Check if already present in dictionary
             if (!terminals.ContainsKey( name )) {  // terminal already known
                 result = new Terminal( isIdent, name, alias );

@@ -121,7 +121,7 @@ namespace QUT.GPGen
         }
 
         internal static bool BumpsMax( string str ) {
-            string num = CharacterUtilities.Canonicalize( str, 1 );
+            string num = CharacterUtilities.CanonicalizeCharacterLiteral( str, 1 );
             int ord = CharacterUtilities.OrdinalOfCharacterLiteral( str, 1 );
             return ord > Terminal.max;
         }
