@@ -306,7 +306,7 @@ namespace QUT.GPGen {
             versionInfo = ((AssemblyFileVersionAttribute)info).Version;
 
             Console.WriteLine( "Gardens Point Parser Generator (gppg) " + versionInfo );
-            Console.WriteLine( "Copyright (c) 2005-2012 Wayne Kelly, QUT" );
+            Console.WriteLine( "Copyright (c) 2005-2014 Wayne Kelly, John Gough, QUT" );
             Console.WriteLine( "Queensland University of Technology" );
             Console.WriteLine();
         }

@@ -50,6 +50,11 @@ namespace QUT.GPGen
 
         internal string Alias { get { return alias; } }
 
+        internal void AddAlias( string alias ) {
+            if (this.alias == null)
+                this.alias = alias;
+        }
+
 		internal override int num
 		{
 			get

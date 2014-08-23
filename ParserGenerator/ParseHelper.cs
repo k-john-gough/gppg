@@ -229,10 +229,11 @@ namespace QUT.GPGen.Parser
                             symbol = grammar.LookupTerminal( Token.litchar, str );
                             break;
                         case Token.litstring:
-                            if (!grammar.aliasTerms.ContainsKey( str ))
+                            String s = CharacterUtilities.CanonicalizeAlias( str );
+                            if (!grammar.aliasTerms.ContainsKey( s ))
                                 handler.ListError( this.CurrentLocationSpan, 83, str, '\0' );
                             else
-                                symbol = grammar.aliasTerms[str];
+                                symbol = grammar.aliasTerms[s];
                             break;
                         case Token.ident:
                             if (grammar.terminals.ContainsKey( str ))
