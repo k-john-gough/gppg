@@ -90,7 +90,8 @@ namespace QUT.GPGen {
                     grammar = parser.Grammar;
 
                     if (Terminal.Max > 255)
-                        handler.ListError( null, 103, CharacterUtilities.Map( Terminal.Max ), '\'' );
+                        // No ambiguating context possible since result appears in delimited error message
+                        handler.ListError( null, 103, CharacterUtilities.MapCodepointToDisplayForm( Terminal.Max ), '\'' ); 
 
                     LALRGenerator generator = new LALRGenerator( grammar );
                     List<AutomatonState> states = generator.BuildStates();

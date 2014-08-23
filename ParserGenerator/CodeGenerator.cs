@@ -422,7 +422,7 @@ namespace QUT.GPGen
               foreach (Terminal termWithAlias in aliasList) {
                 Console.WriteLine("    aliasses.Add({0}, {1});",
                     termWithAlias.num,
-                    CharacterUtilities.QuoteMap(termWithAlias.Alias));
+                    CharacterUtilities.QuoteAndCanonicalize(termWithAlias.Alias));
               }
             }
             Console.WriteLine("  }");
