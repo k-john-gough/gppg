@@ -300,7 +300,7 @@ namespace QUT.GPGen
         /// <returns>the string denoting chr</returns>
         public static string MapCodepointToDisplayForm(int code)
         {
-            if (code > (int)' ' && code < 127 && code != '\\') return new String((char)code, 1);
+            if (code >= (int)' ' && code < 127 && code != '\\') return new String((char)code, 1);
             switch (code)
             {
                 case (int)'\0': return "\\0";
@@ -331,7 +331,7 @@ namespace QUT.GPGen
         /// <returns>the quoted, canonicalized string</returns>
         public static string QuoteAndCanonicalize(string source)
         {
-            return String.Format(CultureInfo.InvariantCulture, "\"{0}\"", MapString(source));
+            return String.Format(CultureInfo.InvariantCulture, "\"{0}\"", CanonicalizeAlias(source));
         }
         /// <summary>
         /// Map the source string to the escaped display form.
@@ -341,9 +341,10 @@ namespace QUT.GPGen
         /// </summary>
         /// <param name="source">the string to convert</param>
         /// <returns>the converted string</returns>
-        public static string MapString(string source)
+        public static string CanonicalizeAlias(string source)
         {
             StringBuilder rslt = new StringBuilder();
+            source = InterpretCharacterEscapes( source );
             if (source != null)
             {
                 int index = 0;
@@ -351,7 +352,7 @@ namespace QUT.GPGen
                     string suffix;
                     if (code == '"')
                         rslt.Append( "\\\"" );
-                    else if (code > (int)' ' && code < 127 && code != '\\') 
+                    else if (code >= (int)' ' && code < 127 && code != '\\') 
                         rslt.Append( (char)code );
                     else {
                         switch (code) {

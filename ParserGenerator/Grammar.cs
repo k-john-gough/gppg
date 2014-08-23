@@ -89,7 +89,9 @@ namespace QUT.GPGen
             Terminal result = null;
             // Canonicalize escaped char-literals
             if (!isIdent)
-                name = CharacterUtilities.CanonicalizeCharacterLiteral(name, 1);
+                name = CharacterUtilities.CanonicalizeCharacterLiteral( name, 1 );
+            else if (alias != null)
+                alias = CharacterUtilities.CanonicalizeAlias( alias );
             // Check if already present in dictionary
             if (!terminals.ContainsKey( name )) {  // terminal already known
                 result = new Terminal( isIdent, name, alias );
@@ -128,15 +130,28 @@ namespace QUT.GPGen
             //
             // Terminal already known in collection
             //
+            String format = null;
             String oldAlias = terminal.Alias;
+            if (oldAlias == null) {
+                format = "Token {0} already declared, without alias {1}";
+                terminal.AddAlias( alias );
+            }
+            else if (oldAlias.Equals( alias )) {
+                format = "Token {0} already declared, with same alias {1}";
+            }
+            else {
+                format = "Declaring an additional alias, {1}, for token {0}";
+            }
             handler.AddWarning( 153,
-                String.Format( CultureInfo.InvariantCulture,
-                (oldAlias == null ? 
-                    "Token {0} already declared, without alias {1}" :
-                    (oldAlias.Equals( alias ) ?
-                        "Token {0} already declared, with same alias {1}" :
-                        "Declaring an additional alias, {1}, for token {0}")
-                    ), terminal.BaseString(), alias ), span );
+                String.Format( CultureInfo.InvariantCulture, format, terminal.BaseString(), alias ),
+                span ); 
+                //(oldAlias == null ? 
+                //    "Token {0} already declared, without alias {1}" :
+                //    (oldAlias.Equals( alias ) ?
+                //        "Token {0} already declared, with same alias {1}" :
+                //        "Declaring an additional alias, {1}, for token {0}")
+                //    ), terminal.BaseString(), alias ), 
+                //    span );
             aliasTerms[alias] = terminal;
         }
 
