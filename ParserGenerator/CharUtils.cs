@@ -1,6 +1,6 @@
 //
 // Gardens Point Scanner Generator
-// Copyright (c) K John Gough, QUT 2006-2010
+// Copyright (c) K John Gough, QUT 2006-2014
 // (see accompanying GPLEXcopyright.rtf)
 // 
 // These utilities are used in GPLEX and GPPG
@@ -338,6 +338,7 @@ namespace QUT.GPGen
         /// The semantics differs from MapCodepointToDisplayForm in
         /// that two-digit escapes are not used if the following character
         /// is a valid hexadecimal digit.
+        /// This function strips the explicit quotes at each end of source.
         /// </summary>
         /// <param name="source">the string to convert</param>
         /// <returns>the converted string</returns>
@@ -350,15 +351,16 @@ namespace QUT.GPGen
                 int index = 0;
                 for (int code; (code = CodePoint( source, ref index )) != -1; ) {
                     string suffix;
-                    if (code == '"')
-                        rslt.Append( "\\\"" );
-                    else if (code >= (int)' ' && code < 127 && code != '\\') 
+                    if (code == '"') {
+                        if (index > 1 && index < source.Length) rslt.Append( "\\\"" ); // else skip.
+                    }
+                    else if (code >= (int)' ' && code < 127 && code != '\\')
                         rslt.Append( (char)code );
                     else {
                         switch (code) {
-                            case (int)'\n': suffix = "\\n";  break;
-                            case (int)'\t': suffix = "\\t";  break;
-                            case (int)'\r': suffix = "\\r";  break;
+                            case (int)'\n': suffix = "\\n"; break;
+                            case (int)'\t': suffix = "\\t"; break;
+                            case (int)'\r': suffix = "\\r"; break;
                             case (int)'\\': suffix = "\\\\"; break;
                             default:
                                 if (code < 256) {
