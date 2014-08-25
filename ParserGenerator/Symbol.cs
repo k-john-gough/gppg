@@ -1,6 +1,6 @@
 
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, QUT 2005-2010
+// Copyright (c) Wayne Kelly, QUT 2005-2014
 // (see accompanying GPPGcopyright.rtf)
 
 
@@ -101,7 +101,7 @@ namespace QUT.GPGen
         public override string ToString()
         {
             if (this.alias != null)
-                return this.alias;
+                return CharacterUtilities.QuoteAndCanonicalize( this.alias );
             else 
                 return base.ToString();
         }

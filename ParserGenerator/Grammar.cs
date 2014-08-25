@@ -1,5 +1,5 @@
 // Gardens Point Parser Generator
-// Copyright (c) Wayne Kelly, QUT 2005-2010
+// Copyright (c) Wayne Kelly, QUT 2005-2014
 // (see accompanying GPPGcopyright.rtf)
 
 
@@ -93,7 +93,7 @@ namespace QUT.GPGen
             else if (alias != null)
                 alias = CharacterUtilities.CanonicalizeAlias( alias );
             // Check if already present in dictionary
-            if (!terminals.ContainsKey( name )) {  // terminal already known
+            if (!terminals.ContainsKey( name )) {  // terminal not already known
                 result = new Terminal( isIdent, name, alias );
                 terminals[name] = result;
                 if (alias != null) CheckAndSetAlias( alias, result, span );
@@ -115,10 +115,10 @@ namespace QUT.GPGen
                 //
                 Terminal other = aliasTerms[alias];
                 if (other != terminal)
-                    handler.AddError( 83,
+                    handler.AddWarning( 153,
                             String.Format( CultureInfo.InvariantCulture,
-                            "Alias {0} already used for token {1}",
-                            alias, other.ToString() ), span );
+                            "Alias \"{0}\" also used for previous token: {1}",
+                            alias, other.BaseString()), span );
             }
             else {
                 aliasTerms[alias] = terminal;
@@ -143,15 +143,9 @@ namespace QUT.GPGen
                 format = "Declaring an additional alias, {1}, for token {0}";
             }
             handler.AddWarning( 153,
-                String.Format( CultureInfo.InvariantCulture, format, terminal.BaseString(), alias ),
+                String.Format( CultureInfo.InvariantCulture, format, 
+                               terminal.BaseString(), alias ),
                 span ); 
-                //(oldAlias == null ? 
-                //    "Token {0} already declared, without alias {1}" :
-                //    (oldAlias.Equals( alias ) ?
-                //        "Token {0} already declared, with same alias {1}" :
-                //        "Declaring an additional alias, {1}, for token {0}")
-                //    ), terminal.BaseString(), alias ), 
-                //    span );
             aliasTerms[alias] = terminal;
         }
 
