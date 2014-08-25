@@ -223,19 +223,22 @@ namespace QUT.GPGen.Parser
                     Symbol symbol = null;
 
                     switch (TokenOf( str )) {
-                        case Token.litchar:
+                        case Token.litchar: // This is a character literal symbol
                             if (GPCG.ImportedTokens && Terminal.BumpsMax( str ))
                                 handler.ListError( this.CurrentLocationSpan, 82, str, '\0' );
                             symbol = grammar.LookupTerminal( Token.litchar, str );
                             break;
-                        case Token.litstring:
+                        case Token.litstring: // This is a uned occurrence of a terminal alias.
                             String s = CharacterUtilities.CanonicalizeAlias( str );
                             if (!grammar.aliasTerms.ContainsKey( s ))
                                 handler.ListError( this.CurrentLocationSpan, 83, str, '\0' );
-                            else
+                            else {
                                 symbol = grammar.aliasTerms[s];
+                                if (symbol == Terminal.Ambiguous) // Use of an ambiguous alias.
+                                    handler.ListError( this.CurrentLocationSpan, 84, str, '\0' );
+                            }                                                
                             break;
-                        case Token.ident:
+                        case Token.ident: // This is a used occurrence of a terminal name.
                             if (grammar.terminals.ContainsKey( str ))
                                 symbol = grammar.terminals[str];
                             else

@@ -86,6 +86,8 @@ namespace QUT.GPGen
 			}
 		}
 
+        internal static readonly Terminal Ambiguous = new Terminal( true, "$Ambiguous$" );
+
         internal Terminal(bool symbolic, string name, string alias) 
             : this(symbolic, name)
         {
