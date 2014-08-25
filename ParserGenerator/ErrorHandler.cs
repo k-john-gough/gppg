@@ -102,10 +102,12 @@ namespace QUT.GPGen.Parser
         /// <param name="spn">The span to which the error is attached</param>
         /// <param name="num">The error number</param>
         /// <param name="key">The featured string</param>
-        internal void ListError(LexSpan spn, int num, string key, char quote)
-        { ListError(spn, num, key, quote, quote); }
+        internal void ListError( LexSpan spn, int num, string key, char quote ) {
+            string s = (quote == '\0' ? "" : quote.ToString());
+            ListError( spn, num, key, s, s );
+        }
 
-        void ListError(LexSpan spn, int num, string key, char lh, char rh)
+        void ListError(LexSpan spn, int num, string key, string lh, string rh)
         {
             string prefix, suffix, message;
             if (spn == null)
@@ -116,8 +118,9 @@ namespace QUT.GPGen.Parser
                 case 70: prefix = "Invalid string escape"; suffix = ""; break;
                 case 82: prefix = "Character literal"; suffix = "exceeds maximum in imported token type"; break;
                 case 83: prefix = "Key"; suffix = "was not found in token alias list"; break;
-                case 103: prefix = "Highest char literal token"; suffix = "is very large"; break;
+                case 84: prefix = "Ambiguous alias"; suffix = "has multiple definitions "; break;
 
+                case 103: prefix = "Highest char literal token"; suffix = "is very large"; break;
                 default: prefix = "Error " + Convert.ToString(num, CultureInfo.InvariantCulture); suffix = "";
                     break;
             }

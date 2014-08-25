@@ -107,18 +107,21 @@ namespace QUT.GPGen
 
         private void CheckAndSetAlias( string alias, Terminal terminal, LexSpan span ) {
             //
-            // Terminal not known in collection
+            // Check if this alias already known.
             //
             if (aliasTerms.ContainsKey( alias )) {
                 //
-                // It is an error if an alias denotes more than one logical token
+                // If an alias denotes more than one logical token then used 
+                // occurrences of the literal string alias must be disallowed. 
                 //
                 Terminal other = aliasTerms[alias];
-                if (other != terminal)
+                if (other != terminal) {
                     handler.AddWarning( 153,
                             String.Format( CultureInfo.InvariantCulture,
-                            "Alias \"{0}\" also used for previous token: {1}",
-                            alias, other.BaseString()), span );
+                            "Alias \"{0}\" also used for previous token: {1}, used occurrences forbidden",
+                            alias, other.BaseString() ), span ); 
+                    aliasTerms[alias] = Terminal.Ambiguous;
+                }
             }
             else {
                 aliasTerms[alias] = terminal;
