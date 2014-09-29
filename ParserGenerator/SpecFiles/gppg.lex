@@ -208,20 +208,22 @@ OneLineCmnt  \/\/{DotChr}*
                               else
                                   braceNestingLevel--; }
     ^%%              {
-                              for ( ; ; ) {
-                                  yy_pop_state();
+                                Error( 60, TokenSpan() );
+                                for ( ; ; ) {
                                   switch (YY_START)
                                   {
                                     case INITIAL: 
-                                        Error(60, TokenSpan()); 
-                                        return (int)Token.kwPCPC;
+                                       return (int)Token.kwPCPC;
                                     case TheRules: 
-                                        Error(60, TokenSpan());
-                                        return (int)Token.kwPCPC;
-                                    default: break; 
+                                       return (int)Token.kwPCPC;
+                                    case TheEpilog:
+                                    case CodeBlock: // just skip the token and continue ...
+                                       Error( 61, TokenSpan() );
+                                       return yylex();
+                                    default: 
+                                        yy_pop_state(); break; 
                                   }
-                              }
-                            }
+                               }
                             
     <<EOF>>          {
                               if (braceNestingLevel != 0)

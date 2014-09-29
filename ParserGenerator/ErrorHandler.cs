@@ -147,6 +147,7 @@ namespace QUT.GPGen.Parser
                 case 58: message = "Literal string terminated by EOL"; break;
                 case 59: message = "Keyword must start in column-0"; break;
                 case 60: message = "Premature termination of Code Block"; break;
+                case 61: message = "Keyword \"%%\" out of place here"; break;
 
                 // Syntactic Errors Detected by the Parser ...
                 case 71: message = "With %union, %YYSTYPE can only be a simple name"; break;
