@@ -224,6 +224,7 @@ OneLineCmnt  \/\/{DotChr}*
                                         yy_pop_state(); break; 
                                   }
                                }
+							}
                             
     <<EOF>>          {
                               if (braceNestingLevel != 0)
