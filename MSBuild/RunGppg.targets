@@ -1,0 +1,40 @@
+<Project>
+  <PropertyGroup>
+    <_GppgTool>dotnet "$(MSBuildThisFileDirectory)/netcoreapp2.0/Gppg.dll"</_GppgTool>
+  </PropertyGroup>
+
+  <!-- Defaults for GppgFile items -->
+  <ItemDefinitionGroup>
+    <GppgFile>
+      <OutputFile>%(Identity).cs</OutputFile>
+      <Arguments></Arguments>
+    </GppgFile>
+  </ItemDefinitionGroup>
+
+  <!-- Run once from outer build in cross targeting projects. Imported and called from crossTargetingBuild/*.targets -->
+  <Target Name="GppgToolCrossTarget" BeforeTargets="DispatchToInnerBuilds" Condition="'$(IsCrossTargetingBuild)' != ''" Inputs="@(GppgFile)" Outputs="@(GppgFile->'%(OutputFile)')">
+    <CallTarget Targets="GppgTool" />
+  </Target>
+
+  <!-- Run once in single targeting projects. Imported and called from build/[framework]/*.targets -->
+  <!-- Don't run in VS design time builds. Otherwise VS compiles eagerly and discards the output -->
+  <Target Name="GppgToolSingleTarget" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' == '' AND '$(IsCrossTargetingBuild)' == ''" Inputs="@(GppgFile)" Outputs="@(GppgFile->'%(OutputFile)')">
+    <CallTarget Targets="GppgTool" />
+  </Target>
+
+  <Target Name="GppgTool" >
+    <Exec Command="$(_GppgTool) %(GppgFile.Arguments) /out:&quot;./%(GppgFile.OutputFile)&quot; %(GppgFile.Identity)" />
+
+    <!-- Ensure the generated files are included in the build. Otherwise first build fails because the source files are collected already -->
+    <ItemGroup>
+      <Compile Remove="@(GppgFile->'%(OutputFile)')" />
+      <Compile Include="@(GppgFile->'%(OutputFile)')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Make it work with VS' FastUpToDateCheck -->
+  <ItemGroup>
+    <UpToDateCheckInput Include="@(GppgFile)" />
+  </ItemGroup>
+
+</Project>
