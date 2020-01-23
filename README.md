@@ -1,6 +1,8 @@
 # Project Description
 GPPG is a parser generator that produces parsers written in the C# V2 or higher. The input language is YACC-like, and the parsers are LALR(1), with the usual automatic disambiguations.  Designed to work with GPLEX.
 
+This repository now has the full documentation for the parser-generator.
+
 
 ## Features
 _GPPG_ generates bottom-up parsers.  The generated parsers recognize languages that are _LALR(1)_, with the traditional **yacc** disambiguations.   There are a number of extensions of the traditional input language that are necessary for correctness of the generated C# output files. 
