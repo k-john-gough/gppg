@@ -156,8 +156,9 @@ namespace QUT.GPGen.Parser
                 FileStream fStrm = null;
                 try {
                     fStrm = new FileStream( grammar.DatFileName, FileMode.Open );
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    grammar.terminals = (Dictionary<string, Terminal>)formatter.Deserialize( fStrm );
+                    BinaryReader reader = new BinaryReader(fStrm);
+                    string json = reader.ReadString();
+                    grammar.terminals = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, Terminal>>(json);
                     Terminal.RemoveMaxDummyTerminalFromDictionary( grammar.terminals );
                 }
                 catch (Exception x) {
