@@ -8,7 +8,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
+  
   <!-- Pack settings -->
   <PropertyGroup>
     <NoPackageAnalysis>true</NoPackageAnalysis>
@@ -25,11 +25,11 @@
     </ItemGroup>
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="TargetFramework=%(_TargetFramework.Identity)" />
   </Target>
-
+  
   <Target Name="NugetSingleTarget" AfterTargets="Build" Condition="'$(TargetFrameworks)' == ''">
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish" />
   </Target>
-
+  
   <ItemGroup>
     <GplexFile Include="ParserGenerator\SpecFiles\ScanAction.lex">
       <OutputFile>ScanAction.cs</OutputFile>
@@ -42,8 +42,9 @@
       <Arguments>/gplex /nolines</Arguments>
     </GppgFile>
   </ItemGroup>
-
+  
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Gplex.Tool" Version="0.0.1-preview1" PrivateAssets="All" />
     <PackageReference Include="Gppg.Tool" Version="0.0.1-preview1" PrivateAssets="All" />
   </ItemGroup>

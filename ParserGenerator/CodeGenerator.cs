@@ -87,10 +87,11 @@ namespace QUT.GPGen
                 try {
                     // Insert marker to carry Terminal.max into the serialized structure.
                     Terminal.InsertMaxDummyTerminalInDictionary( grammar.terminals );
-                   
-                    fStrm = new FileStream( grammar.DatFileName, FileMode.Create );
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize( fStrm, grammar.terminals );
+                    
+                    string json = Newtonsoft.Json.JsonConvert.SerializeObject( grammar.terminals );
+                    fStrm = new FileStream(grammar.DatFileName, FileMode.Create);
+                    BinaryWriter writer = new BinaryWriter(fStrm);
+                    writer.Write(json);
                 }
                 catch (IOException x) {
                     Console.Error.WriteLine( "GPPG: Error. Failed to create token serialization file" );
